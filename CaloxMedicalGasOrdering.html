@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calox Medical Gas - Linde Order Management</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print { .no-print { display: none !important; } }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Version tracking - increment this when products change to force localStorage refresh
+    const DATA_VERSION = 3;
+    const VERSION_KEY = 'calox_data_version';
+
+    // Check and clear localStorage if version changed
+    (() => {
+      try {
+        const savedVersion = localStorage.getItem(VERSION_KEY);
+        if (savedVersion !== String(DATA_VERSION)) {
+          localStorage.removeItem('calox_products_v2');
+          localStorage.removeItem('calox_inventory_v2');
+          localStorage.setItem(VERSION_KEY, String(DATA_VERSION));
+          console.log('Product data updated to version', DATA_VERSION);
+        }
+      } catch (e) { console.log('localStorage not available'); }
+    })();
+
+    // Lucide icons as simple SVG components
+    const Icons = {
+      Package: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>),
+      AlertTriangle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>),
+      ShoppingCart: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>),
+      Download: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>),
+      Settings: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>),
+      Plus: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>),
+      Minus: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>),
+      Trash2: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>),
+      Edit2: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>),
+      Save: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>),
+      X: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>),
+      Search: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>),
+      Filter: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>),
+    };
+
+    // Product data with BOTH Calox codes AND Linde codes
+    const initialProducts = [
+      // LIQUID NITROGEN (Calox LNG codes → Linde NI MLC codes) - Only 160L and 230L
+      { id: 1, caloxCode: "LNG160L", lindeCode: "NI MLC160-22", description: "LIQUID NITROGEN MEDICAL 160L REFILL", lindeCost: 113.56, caloxSaleRate: 278.00, category: "Liquid Nitrogen", size: "LC160" },
+      { id: 2, caloxCode: "LNG230L", lindeCode: "NI MLC230-22", description: "LIQUID NITROGEN MEDICAL 230L REFILL", lindeCost: 135.10, caloxSaleRate: 372.00, category: "Liquid Nitrogen", size: "LC230" },
+
+      // NITROUS OXIDE (Calox MG010-030 → Linde NS codes)
+      { id: 3, caloxCode: "MG010", lindeCode: "NS M-E", description: "NITROUS OXIDE USP E 6LB", lindeCost: 43.37, caloxSaleRate: 70.00, category: "Nitrous Oxide", size: "E" },
+      { id: 4, caloxCode: "MG010-C", lindeCode: null, description: "NITROUS OXIDE E CONTINGENCY CHARGE", lindeCost: null, caloxSaleRate: 15.00, category: "Nitrous Oxide", size: "E" },
+      { id: 5, caloxCode: "MG020", lindeCode: "NS M-17", description: "NITROUS OXIDE USP F 17LB", lindeCost: 18.40, caloxSaleRate: 170.00, category: "Nitrous Oxide", size: "F" },
+      { id: 6, caloxCode: "MG020-C", lindeCode: null, description: "NITROUS OXIDE F CONTINGENCY CHARGE", lindeCost: null, caloxSaleRate: 35.00, category: "Nitrous Oxide", size: "F" },
+      { id: 7, caloxCode: "MG030", lindeCode: "NS M-50", description: "NITROUS OXIDE USP H 50LB", lindeCost: 189.83, caloxSaleRate: 235.00, category: "Nitrous Oxide", size: "H/50LB" },
+      { id: 8, caloxCode: "MG030-C", lindeCode: null, description: "NITROUS OXIDE H CONTINGENCY CHARGE", lindeCost: null, caloxSaleRate: 65.00, category: "Nitrous Oxide", size: "H" },
+
+      // CO2 / CARBON DIOXIDE (Calox MG040-050 → Linde CD codes)
+      { id: 9, caloxCode: "MG040", lindeCode: "CD M-E", description: "CO2 MEDICAL GAS E 6.5LB", lindeCost: 14.81, caloxSaleRate: 33.25, category: "Carbon Dioxide", size: "E" },
+      { id: 10, caloxCode: "MG045", lindeCode: "CD M-20S", description: "CO2 MEDICAL GAS F 20LB", lindeCost: 36.57, caloxSaleRate: 70.00, category: "Carbon Dioxide", size: "F/20LB" },
+      { id: 11, caloxCode: "MG045S", lindeCode: null, description: "CO2 MEDICAL GAS F 20LB W/SIPHON", lindeCost: null, caloxSaleRate: 160.00, category: "Carbon Dioxide", size: "F/20LB" },
+      { id: 12, caloxCode: "MG050", lindeCode: "CD M-50", description: "CO2 MEDICAL GAS H 50LB", lindeCost: 15.70, caloxSaleRate: 98.50, category: "Carbon Dioxide", size: "H/50LB" },
+      { id: 13, caloxCode: "MG050S", lindeCode: null, description: "CO2 MEDICAL GAS W/SIPHON H 50LB", lindeCost: null, caloxSaleRate: 160.00, category: "Carbon Dioxide", size: "H/50LB" },
+      { id: 14, caloxCode: "MGCO2-20BEV", lindeCode: "CD BEVCARB-20", description: "CO2 BEVERAGE 20LBS", lindeCost: 25.01, caloxSaleRate: 50.00, category: "Carbon Dioxide", size: "20LB" },
+      { id: 15, caloxCode: "MGCO2-50BEV", lindeCode: "CD BEVCARB-50", description: "CO2 BEVERAGE 50LBS", lindeCost: 22.00, caloxSaleRate: 117.50, category: "Carbon Dioxide", size: "50LB" },
+
+      // NITROGEN GAS (Calox MG060-080 → Linde NI codes)
+      { id: 16, caloxCode: "MG060", lindeCode: "NI M-E", description: "NITROGEN MEDICAL GAS E 23CF", lindeCost: null, caloxSaleRate: 22.50, category: "Nitrogen", size: "E" },
+      { id: 17, caloxCode: "MG070", lindeCode: "NI M-F", description: "NITROGEN MEDICAL GAS F 23CF", lindeCost: null, caloxSaleRate: 37.00, category: "Nitrogen", size: "F" },
+      { id: 18, caloxCode: "MG080", lindeCode: "NI M-K", description: "NITROGEN MEDICAL GAS H 255CF", lindeCost: 13.59, caloxSaleRate: 48.25, category: "Nitrogen", size: "H/K" },
+
+      // COMPRESSED AIR (Calox MG090-100 → Linde AI codes)
+      { id: 19, caloxCode: "MG090", lindeCode: "AI M-E", description: "COMP AIR MEDICAL GAS E 22CF", lindeCost: 13.22, caloxSaleRate: 26.75, category: "Air", size: "E" },
+      { id: 20, caloxCode: "MG100", lindeCode: "AI M-K", description: "COMP AIR MEDICAL GAS H 232CF", lindeCost: 21.10, caloxSaleRate: 44.25, category: "Air", size: "H/K" },
+
+      // HELIUM (Calox MG110-140 → Linde HE codes)
+      { id: 21, caloxCode: "MG110", lindeCode: "HE M-E", description: "HELIUM MEDICAL GAS E 22CF", lindeCost: 54.65, caloxSaleRate: 197.75, category: "Helium", size: "E" },
+      { id: 22, caloxCode: "MG120", lindeCode: "HE M-K", description: "HELIUM MEDICAL GAS H 217CF", lindeCost: 174.93, caloxSaleRate: 750.00, category: "Helium", size: "H/K" },
+      { id: 23, caloxCode: "MG125", lindeCode: "HE 5.0UH-G", description: "HELIUM ULTRA HIGH PURITY 99.999% F", lindeCost: 212.49, caloxSaleRate: 380.00, category: "Helium", size: "F" },
+      { id: 24, caloxCode: "MG130", lindeCode: "HE B-55", description: "HELIUM BALLOON GAS F 55CF", lindeCost: 31.82, caloxSaleRate: 200.00, category: "Helium", size: "55" },
+      { id: 25, caloxCode: "MG140", lindeCode: "HE B-K", description: "HELIUM BALLOON GAS H 217CF", lindeCost: 485.29, caloxSaleRate: 715.00, category: "Helium", size: "H/K" },
+
+      // ARGON (Calox MG150-160)
+      { id: 26, caloxCode: "MG150", lindeCode: null, description: "ARGON MEDICAL GAS E", lindeCost: null, caloxSaleRate: 0.00, category: "Argon", size: "E" },
+      { id: 27, caloxCode: "MG160", lindeCode: null, description: "ARGON MEDICAL GAS H", lindeCost: null, caloxSaleRate: 0.00, category: "Argon", size: "H" },
+
+      // MIXED GASES / SPECIALTY (Calox MG170+ → Linde MM codes)
+      { id: 28, caloxCode: "MG170", lindeCode: "MM OXCD20-Q", description: "MIXED GAS 20%CO2, 80%O2 Q", lindeCost: 35.54, caloxSaleRate: 0.00, category: "Mixtures", size: "Q" },
+      { id: 29, caloxCode: "MG180", lindeCode: "MM OXCD20-K", description: "MIXED GAS 20%CO2, 80%O2 H", lindeCost: 47.21, caloxSaleRate: 149.50, category: "Mixtures", size: "H/K" },
+      { id: 30, caloxCode: "MG185", lindeCode: "MM OXCD5-K", description: "MIXED GAS 5%CO2, 95%O2 H", lindeCost: 50.36, caloxSaleRate: 149.00, category: "Mixtures", size: "H/K" },
+      { id: 31, caloxCode: "MG190", lindeCode: null, description: "MIXED GAS 4%CO2, 16%O2, BAL N2 E (BLOOD)", lindeCost: null, caloxSaleRate: 235.75, category: "Mixtures", size: "E" },
+
+      // LUNG DIFFUSION GASES
+      { id: 32, caloxCode: "MG210", lindeCode: "LD CO1C-E", description: "LUNG DF NIT-CO .3%-HEL E", lindeCost: 142.51, caloxSaleRate: 280.00, category: "Lung Diffusion", size: "E" },
+      { id: 33, caloxCode: "MG265", lindeCode: "LD CO1C-K", description: "LUNG DF NIT-CO .3%-HEL H", lindeCost: 164.40, caloxSaleRate: 392.00, category: "Lung Diffusion", size: "H/K" },
+      { id: 34, caloxCode: "MG268", lindeCode: "LD ME1C-K", description: "LUNG DF NIT-CO .3%-METH H", lindeCost: 149.80, caloxSaleRate: 332.50, category: "Lung Diffusion", size: "H/K" },
+      { id: 35, caloxCode: "MG269", lindeCode: "LD NIOX15C-K", description: "HIGH ALTITUDE HYPOXIA TEST", lindeCost: 128.63, caloxSaleRate: 474.00, category: "Lung Diffusion", size: "K" },
+
+      // HELIOX
+      { id: 36, caloxCode: "MG3070", lindeCode: "MM HEOX30-K", description: "HELIOX 30/70 MIXTURE K", lindeCost: 323.05, caloxSaleRate: 681.65, category: "Mixtures", size: "K" },
+
+      // ADDITIONAL LINDE-ONLY PRODUCTS
+      { id: 37, caloxCode: null, lindeCode: "HE 55", description: "HELIUM 55", lindeCost: 68.52, caloxSaleRate: null, category: "Helium", size: "55" },
+      { id: 38, caloxCode: null, lindeCode: "HE B-Q", description: "HELIUM BALLOON Q", lindeCost: 66.95, caloxSaleRate: null, category: "Helium", size: "Q" },
+      { id: 39, caloxCode: null, lindeCode: "HE K", description: "HELIUM K", lindeCost: 94.08, caloxSaleRate: null, category: "Helium", size: "K" },
+      { id: 40, caloxCode: null, lindeCode: "HE M-H", description: "HELIUM USP H", lindeCost: 184.22, caloxSaleRate: null, category: "Helium", size: "H" },
+      { id: 41, caloxCode: null, lindeCode: "LD NE1C-E", description: "LUNG DF NIT-CO .3%-NE E", lindeCost: 136.32, caloxSaleRate: null, category: "Lung Diffusion", size: "E" },
+      { id: 42, caloxCode: null, lindeCode: "NS M-20", description: "NITROUS OXIDE USP 20LB", lindeCost: 77.40, caloxSaleRate: null, category: "Nitrous Oxide", size: "20LB" },
+      { id: 43, caloxCode: null, lindeCode: "NS M-20N", description: "NITROUS OXIDE USP 20LB (ALT)", lindeCost: 28.59, caloxSaleRate: null, category: "Nitrous Oxide", size: "20LB" },
+      { id: 44, caloxCode: null, lindeCode: "NS M-50N", description: "NITROUS OXIDE USP 50LB (ALT)", lindeCost: 51.12, caloxSaleRate: null, category: "Nitrous Oxide", size: "50LB" },
+      { id: 45, caloxCode: null, lindeCode: "NS M-56", description: "NITROUS OXIDE USP 56LB", lindeCost: 60.27, caloxSaleRate: null, category: "Nitrous Oxide", size: "56LB" },
+      { id: 46, caloxCode: null, lindeCode: "NS M-64", description: "NITROUS OXIDE USP 64LB", lindeCost: 56.75, caloxSaleRate: null, category: "Nitrous Oxide", size: "64LB" },
+      { id: 47, caloxCode: null, lindeCode: "OX M-E", description: "OXYGEN USP E", lindeCost: 2.83, caloxSaleRate: null, category: "Oxygen", size: "E" },
+      { id: 48, caloxCode: null, lindeCode: "OX M-H", description: "OXYGEN USP H", lindeCost: 7.61, caloxSaleRate: null, category: "Oxygen", size: "H" },
+      { id: 49, caloxCode: null, lindeCode: "OX ABO-K", description: "OXYGEN ABO K", lindeCost: 9.63, caloxSaleRate: null, category: "Oxygen", size: "K" },
+      { id: 50, caloxCode: null, lindeCode: "OX MLC160-230", description: "OXYGEN LIQUID USP LC160", lindeCost: 116.97, caloxSaleRate: null, category: "Liquid Oxygen", size: "LC160" },
+      { id: 51, caloxCode: null, lindeCode: "OX MLC180-350", description: "OXYGEN LIQUID USP LC180", lindeCost: 135.65, caloxSaleRate: null, category: "Liquid Oxygen", size: "LC180" },
+      { id: 52, caloxCode: null, lindeCode: "OX M-BULKDS", description: "OXYGEN LIQUID USP NAIG (per unit)", lindeCost: 0.38, caloxSaleRate: null, category: "Liquid Oxygen", size: "BULK" },
+      { id: 53, caloxCode: null, lindeCode: "AOXLA267FBS-B", description: "LEVER ACTION HOLDER W/S", lindeCost: 171.29, caloxSaleRate: null, category: "Equipment", size: "N/A" },
+      { id: 54, caloxCode: null, lindeCode: "ZZZBKHM", description: "BULK HAZARDOUS MATERIAL FEE", lindeCost: 10.00, caloxSaleRate: null, category: "Fees", size: "N/A" },
+    ];
+
+    // Default inventory
+    const createDefaultInventory = (products) => products.map(p => ({
+      productId: p.id,
+      currentStock: 0,
+      refillLevel: 2,
+      maxStock: 10
+    }));
+
+    function CaloxMedicalGasOrdering() {
+      const [products, setProducts] = useState(() => {
+        try {
+          const saved = localStorage.getItem('calox_products_v2');
+          return saved ? JSON.parse(saved) : initialProducts;
+        } catch { return initialProducts; }
+      });
+
+      const [inventory, setInventory] = useState(() => {
+        try {
+          const saved = localStorage.getItem('calox_inventory_v2');
+          return saved ? JSON.parse(saved) : createDefaultInventory(initialProducts);
+        } catch { return createDefaultInventory(initialProducts); }
+      });
+
+      const [cart, setCart] = useState([]);
+      const [activeTab, setActiveTab] = useState('order');
+      const [searchTerm, setSearchTerm] = useState('');
+      const [categoryFilter, setCategoryFilter] = useState('All');
+      const [editingProduct, setEditingProduct] = useState(null);
+      const [editingInventory, setEditingInventory] = useState(null);
+      const [tempPrice, setTempPrice] = useState('');
+      const [tempInventory, setTempInventory] = useState({});
+
+      useEffect(() => {
+        try { localStorage.setItem('calox_products_v2', JSON.stringify(products)); } catch {}
+      }, [products]);
+
+      useEffect(() => {
+        try { localStorage.setItem('calox_inventory_v2', JSON.stringify(inventory)); } catch {}
+      }, [inventory]);
+
+      const categories = ['All', ...new Set(products.map(p => p.category))];
+
+      const filteredProducts = products.filter(p => {
+        const matchesSearch = p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              (p.caloxCode && p.caloxCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                              (p.lindeCode && p.lindeCode.toLowerCase().includes(searchTerm.toLowerCase()));
+        const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+      });
+
+      const getInventory = (productId) => inventory.find(i => i.productId === productId) || { currentStock: 0, refillLevel: 2, maxStock: 10 };
+      const needsRefill = (productId) => { const inv = getInventory(productId); return inv.currentStock <= inv.refillLevel; };
+      const productsNeedingRefill = products.filter(p => needsRefill(p.id) && (p.lindeCost || p.caloxSaleRate));
+
+      const addToCart = (product, quantity = 1) => {
+        setCart(prev => {
+          const existing = prev.find(item => item.productId === product.id);
+          if (existing) return prev.map(item => item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+          return [...prev, { productId: product.id, product, quantity }];
+        });
+      };
+
+      const removeFromCart = (productId) => setCart(prev => prev.filter(item => item.productId !== productId));
+      const updateCartQuantity = (productId, quantity) => quantity <= 0 ? removeFromCart(productId) : setCart(prev => prev.map(item => item.productId === productId ? { ...item, quantity } : item));
+      const clearCart = () => setCart([]);
+
+      const cartTotal = cart.reduce((sum, item) => sum + ((item.product.lindeCost || 0) * item.quantity), 0);
+
+      const updateProductPrice = (productId, newPrice) => {
+        const price = parseFloat(newPrice);
+        if (!isNaN(price) && price >= 0) setProducts(prev => prev.map(p => p.id === productId ? { ...p, lindeCost: price } : p));
+        setEditingProduct(null);
+        setTempPrice('');
+      };
+
+      const updateInventoryItem = (productId) => {
+        setInventory(prev => prev.map(i => i.productId === productId ? { ...i, ...tempInventory } : i));
+        setEditingInventory(null);
+        setTempInventory({});
+      };
+
+      const exportToCSV = () => {
+        const headers = ['Calox Code', 'Linde Code', 'Description', 'Size', 'Quantity', 'Linde Cost', 'Line Total'];
+        const rows = cart.map(item => [
+          item.product.caloxCode || '',
+          item.product.lindeCode || '',
+          `"${item.product.description}"`,
+          item.product.size,
+          item.quantity,
+          (item.product.lindeCost || 0).toFixed(2),
+          ((item.product.lindeCost || 0) * item.quantity).toFixed(2)
+        ]);
+        rows.push(['', '', '', '', '', 'TOTAL:', cartTotal.toFixed(2)]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Calox_Linde_Order_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      const exportToPDF = () => {
+        const printContent = `<!DOCTYPE html><html><head><title>Calox Medical Gas Order</title><style>body{font-family:Arial,sans-serif;padding:40px}h1{color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:10px;text-align:left;font-size:12px}th{background-color:#1e3a5f;color:white}tr:nth-child(even){background-color:#f9fafb}.total-row{font-weight:bold;background-color:#e5e7eb!important}.code{font-family:monospace;font-size:11px}</style></head><body><div style="display:flex;justify-content:space-between"><div><h1>Calox Medical Gas Order</h1><p>Order Date: ${new Date().toLocaleDateString()}</p></div><div style="text-align:right"><strong>Supplier: Linde</strong><br>Customer ID: 71793093</div></div><table><thead><tr><th>Calox Code</th><th>Linde Code</th><th>Description</th><th>Size</th><th>Qty</th><th>Cost</th><th>Total</th></tr></thead><tbody>${cart.map(item => `<tr><td class="code">${item.product.caloxCode || '-'}</td><td class="code">${item.product.lindeCode || '-'}</td><td>${item.product.description}</td><td>${item.product.size}</td><td>${item.quantity}</td><td>$${(item.product.lindeCost || 0).toFixed(2)}</td><td>$${((item.product.lindeCost || 0) * item.quantity).toFixed(2)}</td></tr>`).join('')}<tr class="total-row"><td colspan="6" style="text-align:right">ORDER TOTAL:</td><td>$${cartTotal.toFixed(2)}</td></tr></tbody></table><p style="margin-top:40px;color:#666;font-size:11px">Generated by Calox Medical Gas Ordering System</p></body></html>`;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+      };
+
+      // ORDER TAB
+      const renderOrderTab = () => (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><Icons.Search /></div>
+              <input type="text" placeholder="Search by Calox code, Linde code, or description..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </div>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><Icons.Filter /></div>
+              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="pl-10 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 appearance-none bg-white">
+                {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
+              </select>
+            </div>
+          </div>
+
+          {productsNeedingRefill.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-amber-800 font-medium mb-2">
+                <Icons.AlertTriangle /><span>Low Stock Alert - {productsNeedingRefill.length} items need refill</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {productsNeedingRefill.slice(0, 5).map(p => (
+                  <button key={p.id} onClick={() => addToCart(p)} className="text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full transition">
+                    + {p.caloxCode || p.lindeCode}
+                  </button>
+                ))}
+                {productsNeedingRefill.length > 5 && <span className="text-sm text-amber-600">+{productsNeedingRefill.length - 5} more</span>}
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-3">
+            {filteredProducts.map(product => {
+              const inv = getInventory(product.id);
+              const isLowStock = needsRefill(product.id);
+              const cartItem = cart.find(item => item.productId === product.id);
+              const margin = product.lindeCost && product.caloxSaleRate ? ((product.caloxSaleRate - product.lindeCost) / product.caloxSaleRate * 100).toFixed(0) : null;
+
+              return (
+                <div key={product.id} className={`bg-white border rounded-lg p-4 ${isLowStock ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {product.caloxCode && <span className="font-mono text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded" title="Calox Code">{product.caloxCode}</span>}
+                        {product.lindeCode && <span className="font-mono text-sm bg-green-100 text-green-800 px-2 py-1 rounded" title="Linde Code">{product.lindeCode}</span>}
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.size}</span>
+                        {isLowStock && <span className="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded-full">Low Stock</span>}
+                      </div>
+                      <p className="font-medium mt-1">{product.description}</p>
+                      <p className="text-sm text-gray-500">{product.category}</p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        {product.lindeCost !== null && <p className="text-lg font-bold text-green-600">${product.lindeCost.toFixed(2)} <span className="text-xs font-normal text-gray-500">Linde</span></p>}
+                        {product.caloxSaleRate !== null && product.caloxSaleRate > 0 && (
+                          <p className="text-sm text-blue-600">${product.caloxSaleRate.toFixed(2)} <span className="text-xs text-gray-400">Sale</span></p>
+                        )}
+                        {margin && <p className="text-xs text-gray-400">{margin}% margin</p>}
+                      </div>
+
+                      <div className="text-center text-sm">
+                        <p className="text-gray-500">Stock</p>
+                        <p className={`font-medium ${isLowStock ? 'text-amber-600' : 'text-gray-700'}`}>{inv.currentStock}</p>
+                      </div>
+
+                      {cartItem ? (
+                        <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-1">
+                          <button onClick={() => updateCartQuantity(product.id, cartItem.quantity - 1)} className="w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 transition"><Icons.Minus /></button>
+                          <span className="w-8 text-center font-medium">{cartItem.quantity}</span>
+                          <button onClick={() => updateCartQuantity(product.id, cartItem.quantity + 1)} className="w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 transition"><Icons.Plus /></button>
+                        </div>
+                      ) : (
+                        <button onClick={() => addToCart(product)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"><Icons.Plus />Add</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+      // CART TAB
+      const renderCartTab = () => (
+        <div className="space-y-4">
+          {cart.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="w-16 h-16 mx-auto mb-4 opacity-50"><Icons.ShoppingCart /></div>
+              <p className="text-lg">Your cart is empty</p>
+              <p className="text-sm">Add products from the Order tab</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white border rounded-lg overflow-x-auto">
+                <table className="w-full min-w-[700px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-3 font-medium">Calox Code</th>
+                      <th className="text-left p-3 font-medium">Linde Code</th>
+                      <th className="text-left p-3 font-medium">Description</th>
+                      <th className="text-center p-3 font-medium">Qty</th>
+                      <th className="text-right p-3 font-medium">Linde Cost</th>
+                      <th className="text-right p-3 font-medium">Total</th>
+                      <th className="p-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cart.map(item => (
+                      <tr key={item.productId} className="border-t">
+                        <td className="p-3 font-mono text-sm text-blue-700">{item.product.caloxCode || '-'}</td>
+                        <td className="p-3 font-mono text-sm text-green-700">{item.product.lindeCode || '-'}</td>
+                        <td className="p-3"><p className="font-medium">{item.product.description}</p><p className="text-xs text-gray-500">{item.product.size}</p></td>
+                        <td className="p-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <button onClick={() => updateCartQuantity(item.productId, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-100 transition"><Icons.Minus /></button>
+                            <input type="number" value={item.quantity} onChange={(e) => updateCartQuantity(item.productId, parseInt(e.target.value) || 0)} className="w-16 text-center border rounded py-1" min="0" />
+                            <button onClick={() => updateCartQuantity(item.productId, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-100 transition"><Icons.Plus /></button>
+                          </div>
+                        </td>
+                        <td className="p-3 text-right">${(item.product.lindeCost || 0).toFixed(2)}</td>
+                        <td className="p-3 text-right font-medium">${((item.product.lindeCost || 0) * item.quantity).toFixed(2)}</td>
+                        <td className="p-3"><button onClick={() => removeFromCart(item.productId)} className="text-red-500 hover:text-red-700 p-1"><Icons.Trash2 /></button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-gray-50 font-bold">
+                    <tr className="border-t-2">
+                      <td colSpan="5" className="p-4 text-right">Order Total (Linde Cost):</td>
+                      <td className="p-4 text-right text-xl text-green-600">${cartTotal.toFixed(2)}</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between gap-4">
+                <button onClick={clearCart} className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">Clear Cart</button>
+                <div className="flex gap-3">
+                  <button onClick={exportToCSV} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"><Icons.Download />Export CSV</button>
+                  <button onClick={exportToPDF} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"><Icons.Download />Export PDF</button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      );
+
+      // INVENTORY TAB
+      const renderInventoryTab = () => (
+        <div className="space-y-4">
+          <p className="text-gray-600">Manage stock levels and refill thresholds. Products at or below the refill level will trigger alerts.</p>
+          <div className="bg-white border rounded-lg overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-3 font-medium">Calox Code</th>
+                  <th className="text-left p-3 font-medium">Description</th>
+                  <th className="text-center p-3 font-medium">Current</th>
+                  <th className="text-center p-3 font-medium">Refill At</th>
+                  <th className="text-center p-3 font-medium">Max</th>
+                  <th className="text-center p-3 font-medium">Status</th>
+                  <th className="p-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.filter(p => p.caloxCode || p.lindeCost).map(product => {
+                  const inv = getInventory(product.id);
+                  const isLow = needsRefill(product.id);
+                  const isEditing = editingInventory === product.id;
+
+                  return (
+                    <tr key={product.id} className={`border-t ${isLow ? 'bg-amber-50' : ''}`}>
+                      <td className="p-3 font-mono text-sm text-blue-700">{product.caloxCode || product.lindeCode}</td>
+                      <td className="p-3 text-sm">{product.description}</td>
+                      <td className="p-3 text-center">
+                        {isEditing ? <input type="number" value={tempInventory.currentStock ?? inv.currentStock} onChange={(e) => setTempInventory({...tempInventory, currentStock: parseInt(e.target.value) || 0})} className="w-16 text-center border rounded p-1" min="0" /> : <span className={`font-medium ${isLow ? 'text-amber-600' : ''}`}>{inv.currentStock}</span>}
+                      </td>
+                      <td className="p-3 text-center">
+                        {isEditing ? <input type="number" value={tempInventory.refillLevel ?? inv.refillLevel} onChange={(e) => setTempInventory({...tempInventory, refillLevel: parseInt(e.target.value) || 0})} className="w-16 text-center border rounded p-1" min="0" /> : inv.refillLevel}
+                      </td>
+                      <td className="p-3 text-center">
+                        {isEditing ? <input type="number" value={tempInventory.maxStock ?? inv.maxStock} onChange={(e) => setTempInventory({...tempInventory, maxStock: parseInt(e.target.value) || 1})} className="w-16 text-center border rounded p-1" min="1" /> : inv.maxStock}
+                      </td>
+                      <td className="p-3 text-center">
+                        {isLow ? <span className="inline-flex items-center gap-1 text-amber-600 text-sm"><Icons.AlertTriangle />Low</span> : <span className="text-green-600 text-sm">OK</span>}
+                      </td>
+                      <td className="p-3">
+                        {isEditing ? (
+                          <div className="flex gap-1">
+                            <button onClick={() => updateInventoryItem(product.id)} className="p-1 text-green-600 hover:text-green-700"><Icons.Save /></button>
+                            <button onClick={() => { setEditingInventory(null); setTempInventory({}); }} className="p-1 text-gray-500 hover:text-gray-700"><Icons.X /></button>
+                          </div>
+                        ) : <button onClick={() => { setEditingInventory(product.id); setTempInventory(inv); }} className="p-1 text-blue-600 hover:text-blue-700"><Icons.Edit2 /></button>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+
+      // PRICING TAB
+      const renderPricingTab = () => (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800"><strong>Update Linde Pricing:</strong> Edit the Linde Cost when contract pricing changes. Your Calox sale rates are shown for margin reference.</p>
+          </div>
+          <div className="flex gap-4 text-sm mb-2">
+            <span className="flex items-center gap-2"><span className="w-4 h-4 bg-blue-100 rounded"></span> Calox Code</span>
+            <span className="flex items-center gap-2"><span className="w-4 h-4 bg-green-100 rounded"></span> Linde Code</span>
+          </div>
+          <div className="bg-white border rounded-lg overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-3 font-medium">Calox Code</th>
+                  <th className="text-left p-3 font-medium">Linde Code</th>
+                  <th className="text-left p-3 font-medium">Description</th>
+                  <th className="text-center p-3 font-medium">Size</th>
+                  <th className="text-right p-3 font-medium">Linde Cost</th>
+                  <th className="text-right p-3 font-medium">Sale Rate</th>
+                  <th className="text-right p-3 font-medium">Margin</th>
+                  <th className="p-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map(product => {
+                  const isEditing = editingProduct === product.id;
+                  const margin = product.lindeCost && product.caloxSaleRate ? ((product.caloxSaleRate - product.lindeCost) / product.caloxSaleRate * 100).toFixed(0) : null;
+
+                  return (
+                    <tr key={product.id} className="border-t hover:bg-gray-50">
+                      <td className="p-3 font-mono text-sm text-blue-700">{product.caloxCode || '-'}</td>
+                      <td className="p-3 font-mono text-sm text-green-700">{product.lindeCode || '-'}</td>
+                      <td className="p-3 text-sm">{product.description}</td>
+                      <td className="p-3 text-center text-sm">{product.size}</td>
+                      <td className="p-3 text-right">
+                        {isEditing ? <input type="number" step="0.01" value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} className="w-24 text-right border rounded p-1" min="0" /> : (product.lindeCost !== null ? <span className="font-medium text-green-600">${product.lindeCost.toFixed(2)}</span> : <span className="text-gray-400">-</span>)}
+                      </td>
+                      <td className="p-3 text-right">{product.caloxSaleRate ? <span className="text-blue-600">${product.caloxSaleRate.toFixed(2)}</span> : <span className="text-gray-400">-</span>}</td>
+                      <td className="p-3 text-right">{margin && parseInt(margin) > 0 ? <span className="text-green-600 text-sm">{margin}%</span> : '-'}</td>
+                      <td className="p-3">
+                        {product.lindeCode && (isEditing ? (
+                          <div className="flex gap-1">
+                            <button onClick={() => updateProductPrice(product.id, tempPrice)} className="p-1 text-green-600 hover:text-green-700"><Icons.Save /></button>
+                            <button onClick={() => { setEditingProduct(null); setTempPrice(''); }} className="p-1 text-gray-500 hover:text-gray-700"><Icons.X /></button>
+                          </div>
+                        ) : <button onClick={() => { setEditingProduct(product.id); setTempPrice((product.lindeCost || 0).toString()); }} className="p-1 text-blue-600 hover:text-blue-700"><Icons.Edit2 /></button>)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen bg-gray-100">
+          <header className="bg-white border-b shadow-lg no-print">
+            <div className="max-w-6xl mx-auto px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <img src="data:image/png;base64,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" alt="CalOx Health Services" className="h-12" />
+                  <div>
+                    <p className="text-gray-500 text-sm">Medical Gas Ordering</p>
+                    <p className="text-xs text-gray-400">Linde Order Management</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right text-sm hidden sm:block">
+                    <p className="text-gray-500">Customer ID</p>
+                    <p className="font-mono text-gray-700">71793093</p>
+                  </div>
+                  {cart.length > 0 && (
+                    <button onClick={() => setActiveTab('cart')} className="relative bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition">
+                      <Icons.ShoppingCart />
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">{cart.length}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <nav className="bg-white border-b sticky top-0 z-10 no-print">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex gap-1 overflow-x-auto">
+                {[
+                  { id: 'order', label: 'Order', icon: Icons.Package },
+                  { id: 'cart', label: `Cart (${cart.length})`, icon: Icons.ShoppingCart },
+                  { id: 'inventory', label: 'Inventory', icon: Icons.AlertTriangle },
+                  { id: 'pricing', label: 'Pricing', icon: Icons.Settings }
+                ].map(tab => (
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 border-b-2 transition font-medium whitespace-nowrap ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                    <tab.icon />{tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </nav>
+
+          <main className="max-w-6xl mx-auto px-4 py-6">
+            {activeTab === 'order' && renderOrderTab()}
+            {activeTab === 'cart' && renderCartTab()}
+            {activeTab === 'inventory' && renderInventoryTab()}
+            {activeTab === 'pricing' && renderPricingTab()}
+          </main>
+
+          <footer className="bg-gray-800 text-gray-400 py-4 mt-8 no-print">
+            <div className="max-w-6xl mx-auto px-4 text-center text-sm">
+              <p>Calox Medical Gas Ordering System • Calox + Linde Code Mapping</p>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<CaloxMedicalGasOrdering />, document.getElementById('root'));
+  </script>
+</body>
+</html>
