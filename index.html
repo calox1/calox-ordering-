@@ -19,7 +19,7 @@
     const { useState, useEffect } = React;
 
     // Version tracking - increment this when products change to force localStorage refresh
-    const DATA_VERSION = 3;
+    const DATA_VERSION = 4;
     const VERSION_KEY = 'calox_data_version';
 
     // Check and clear localStorage if version changed
@@ -54,81 +54,53 @@
 
     // Product data with BOTH Calox codes AND Linde codes
     const initialProducts = [
-      // LIQUID NITROGEN (Calox LNG codes → Linde NI MLC codes) - Only 160L and 230L
       { id: 1, caloxCode: "LNG160L", lindeCode: "NI MLC160-22", description: "LIQUID NITROGEN MEDICAL 160L REFILL", lindeCost: 113.56, caloxSaleRate: 278.00, category: "Liquid Nitrogen", size: "LC160" },
       { id: 2, caloxCode: "LNG230L", lindeCode: "NI MLC230-22", description: "LIQUID NITROGEN MEDICAL 230L REFILL", lindeCost: 135.10, caloxSaleRate: 372.00, category: "Liquid Nitrogen", size: "LC230" },
-
-      // NITROUS OXIDE (Calox MG010-030 → Linde NS codes)
-      { id: 3, caloxCode: "MG010", lindeCode: "NS M-E", description: "NITROUS OXIDE USP E 6LB", lindeCost: 43.37, caloxSaleRate: 70.00, category: "Nitrous Oxide", size: "E" },
-      { id: 4, caloxCode: "MG010-C", lindeCode: null, description: "NITROUS OXIDE E CONTINGENCY CHARGE", lindeCost: null, caloxSaleRate: 15.00, category: "Nitrous Oxide", size: "E" },
-      { id: 5, caloxCode: "MG020", lindeCode: "NS M-17", description: "NITROUS OXIDE USP F 17LB", lindeCost: 18.40, caloxSaleRate: 170.00, category: "Nitrous Oxide", size: "F" },
-      { id: 6, caloxCode: "MG020-C", lindeCode: null, description: "NITROUS OXIDE F CONTINGENCY CHARGE", lindeCost: null, caloxSaleRate: 35.00, category: "Nitrous Oxide", size: "F" },
-      { id: 7, caloxCode: "MG030", lindeCode: "NS M-50", description: "NITROUS OXIDE USP H 50LB", lindeCost: 189.83, caloxSaleRate: 235.00, category: "Nitrous Oxide", size: "H/50LB" },
-      { id: 8, caloxCode: "MG030-C", lindeCode: null, description: "NITROUS OXIDE H CONTINGENCY CHARGE", lindeCost: null, caloxSaleRate: 65.00, category: "Nitrous Oxide", size: "H" },
-
-      // CO2 / CARBON DIOXIDE (Calox MG040-050 → Linde CD codes)
-      { id: 9, caloxCode: "MG040", lindeCode: "CD M-E", description: "CO2 MEDICAL GAS E 6.5LB", lindeCost: 14.81, caloxSaleRate: 33.25, category: "Carbon Dioxide", size: "E" },
-      { id: 10, caloxCode: "MG045", lindeCode: "CD M-20S", description: "CO2 MEDICAL GAS F 20LB", lindeCost: 36.57, caloxSaleRate: 70.00, category: "Carbon Dioxide", size: "F/20LB" },
-      { id: 11, caloxCode: "MG045S", lindeCode: null, description: "CO2 MEDICAL GAS F 20LB W/SIPHON", lindeCost: null, caloxSaleRate: 160.00, category: "Carbon Dioxide", size: "F/20LB" },
-      { id: 12, caloxCode: "MG050", lindeCode: "CD M-50", description: "CO2 MEDICAL GAS H 50LB", lindeCost: 15.70, caloxSaleRate: 98.50, category: "Carbon Dioxide", size: "H/50LB" },
-      { id: 13, caloxCode: "MG050S", lindeCode: null, description: "CO2 MEDICAL GAS W/SIPHON H 50LB", lindeCost: null, caloxSaleRate: 160.00, category: "Carbon Dioxide", size: "H/50LB" },
-      { id: 14, caloxCode: "MGCO2-20BEV", lindeCode: "CD BEVCARB-20", description: "CO2 BEVERAGE 20LBS", lindeCost: 25.01, caloxSaleRate: 50.00, category: "Carbon Dioxide", size: "20LB" },
-      { id: 15, caloxCode: "MGCO2-50BEV", lindeCode: "CD BEVCARB-50", description: "CO2 BEVERAGE 50LBS", lindeCost: 22.00, caloxSaleRate: 117.50, category: "Carbon Dioxide", size: "50LB" },
-
-      // NITROGEN GAS (Calox MG060-080 → Linde NI codes)
-      { id: 16, caloxCode: "MG060", lindeCode: "NI M-E", description: "NITROGEN MEDICAL GAS E 23CF", lindeCost: null, caloxSaleRate: 22.50, category: "Nitrogen", size: "E" },
-      { id: 17, caloxCode: "MG070", lindeCode: "NI M-F", description: "NITROGEN MEDICAL GAS F 23CF", lindeCost: null, caloxSaleRate: 37.00, category: "Nitrogen", size: "F" },
-      { id: 18, caloxCode: "MG080", lindeCode: "NI M-K", description: "NITROGEN MEDICAL GAS H 255CF", lindeCost: 13.59, caloxSaleRate: 48.25, category: "Nitrogen", size: "H/K" },
-
-      // COMPRESSED AIR (Calox MG090-100 → Linde AI codes)
-      { id: 19, caloxCode: "MG090", lindeCode: "AI M-E", description: "COMP AIR MEDICAL GAS E 22CF", lindeCost: 13.22, caloxSaleRate: 26.75, category: "Air", size: "E" },
-      { id: 20, caloxCode: "MG100", lindeCode: "AI M-K", description: "COMP AIR MEDICAL GAS H 232CF", lindeCost: 21.10, caloxSaleRate: 44.25, category: "Air", size: "H/K" },
-
-      // HELIUM (Calox MG110-140 → Linde HE codes)
-      { id: 21, caloxCode: "MG110", lindeCode: "HE M-E", description: "HELIUM MEDICAL GAS E 22CF", lindeCost: 54.65, caloxSaleRate: 197.75, category: "Helium", size: "E" },
-      { id: 22, caloxCode: "MG120", lindeCode: "HE M-K", description: "HELIUM MEDICAL GAS H 217CF", lindeCost: 174.93, caloxSaleRate: 750.00, category: "Helium", size: "H/K" },
-      { id: 23, caloxCode: "MG125", lindeCode: "HE 5.0UH-G", description: "HELIUM ULTRA HIGH PURITY 99.999% F", lindeCost: 212.49, caloxSaleRate: 380.00, category: "Helium", size: "F" },
-      { id: 24, caloxCode: "MG130", lindeCode: "HE B-55", description: "HELIUM BALLOON GAS F 55CF", lindeCost: 31.82, caloxSaleRate: 200.00, category: "Helium", size: "55" },
-      { id: 25, caloxCode: "MG140", lindeCode: "HE B-K", description: "HELIUM BALLOON GAS H 217CF", lindeCost: 485.29, caloxSaleRate: 715.00, category: "Helium", size: "H/K" },
-
-      // ARGON (Calox MG150-160)
-      { id: 26, caloxCode: "MG150", lindeCode: null, description: "ARGON MEDICAL GAS E", lindeCost: null, caloxSaleRate: 0.00, category: "Argon", size: "E" },
-      { id: 27, caloxCode: "MG160", lindeCode: null, description: "ARGON MEDICAL GAS H", lindeCost: null, caloxSaleRate: 0.00, category: "Argon", size: "H" },
-
-      // MIXED GASES / SPECIALTY (Calox MG170+ → Linde MM codes)
-      { id: 28, caloxCode: "MG170", lindeCode: "MM OXCD20-Q", description: "MIXED GAS 20%CO2, 80%O2 Q", lindeCost: 35.54, caloxSaleRate: 0.00, category: "Mixtures", size: "Q" },
-      { id: 29, caloxCode: "MG180", lindeCode: "MM OXCD20-K", description: "MIXED GAS 20%CO2, 80%O2 H", lindeCost: 47.21, caloxSaleRate: 149.50, category: "Mixtures", size: "H/K" },
-      { id: 30, caloxCode: "MG185", lindeCode: "MM OXCD5-K", description: "MIXED GAS 5%CO2, 95%O2 H", lindeCost: 50.36, caloxSaleRate: 149.00, category: "Mixtures", size: "H/K" },
-      { id: 31, caloxCode: "MG190", lindeCode: null, description: "MIXED GAS 4%CO2, 16%O2, BAL N2 E (BLOOD)", lindeCost: null, caloxSaleRate: 235.75, category: "Mixtures", size: "E" },
-
-      // LUNG DIFFUSION GASES
-      { id: 32, caloxCode: "MG210", lindeCode: "LD CO1C-E", description: "LUNG DF NIT-CO .3%-HEL E", lindeCost: 142.51, caloxSaleRate: 280.00, category: "Lung Diffusion", size: "E" },
-      { id: 33, caloxCode: "MG265", lindeCode: "LD CO1C-K", description: "LUNG DF NIT-CO .3%-HEL H", lindeCost: 164.40, caloxSaleRate: 392.00, category: "Lung Diffusion", size: "H/K" },
-      { id: 34, caloxCode: "MG268", lindeCode: "LD ME1C-K", description: "LUNG DF NIT-CO .3%-METH H", lindeCost: 149.80, caloxSaleRate: 332.50, category: "Lung Diffusion", size: "H/K" },
-      { id: 35, caloxCode: "MG269", lindeCode: "LD NIOX15C-K", description: "HIGH ALTITUDE HYPOXIA TEST", lindeCost: 128.63, caloxSaleRate: 474.00, category: "Lung Diffusion", size: "K" },
-
-      // HELIOX
-      { id: 36, caloxCode: "MG3070", lindeCode: "MM HEOX30-K", description: "HELIOX 30/70 MIXTURE K", lindeCost: 323.05, caloxSaleRate: 681.65, category: "Mixtures", size: "K" },
-
-      // ADDITIONAL LINDE-ONLY PRODUCTS
-      { id: 37, caloxCode: null, lindeCode: "HE 55", description: "HELIUM 55", lindeCost: 68.52, caloxSaleRate: null, category: "Helium", size: "55" },
-      { id: 38, caloxCode: null, lindeCode: "HE B-Q", description: "HELIUM BALLOON Q", lindeCost: 66.95, caloxSaleRate: null, category: "Helium", size: "Q" },
-      { id: 39, caloxCode: null, lindeCode: "HE K", description: "HELIUM K", lindeCost: 94.08, caloxSaleRate: null, category: "Helium", size: "K" },
-      { id: 40, caloxCode: null, lindeCode: "HE M-H", description: "HELIUM USP H", lindeCost: 184.22, caloxSaleRate: null, category: "Helium", size: "H" },
-      { id: 41, caloxCode: null, lindeCode: "LD NE1C-E", description: "LUNG DF NIT-CO .3%-NE E", lindeCost: 136.32, caloxSaleRate: null, category: "Lung Diffusion", size: "E" },
-      { id: 42, caloxCode: null, lindeCode: "NS M-20", description: "NITROUS OXIDE USP 20LB", lindeCost: 77.40, caloxSaleRate: null, category: "Nitrous Oxide", size: "20LB" },
-      { id: 43, caloxCode: null, lindeCode: "NS M-20N", description: "NITROUS OXIDE USP 20LB (ALT)", lindeCost: 28.59, caloxSaleRate: null, category: "Nitrous Oxide", size: "20LB" },
-      { id: 44, caloxCode: null, lindeCode: "NS M-50N", description: "NITROUS OXIDE USP 50LB (ALT)", lindeCost: 51.12, caloxSaleRate: null, category: "Nitrous Oxide", size: "50LB" },
-      { id: 45, caloxCode: null, lindeCode: "NS M-56", description: "NITROUS OXIDE USP 56LB", lindeCost: 60.27, caloxSaleRate: null, category: "Nitrous Oxide", size: "56LB" },
-      { id: 46, caloxCode: null, lindeCode: "NS M-64", description: "NITROUS OXIDE USP 64LB", lindeCost: 56.75, caloxSaleRate: null, category: "Nitrous Oxide", size: "64LB" },
-      { id: 47, caloxCode: null, lindeCode: "OX M-E", description: "OXYGEN USP E", lindeCost: 2.83, caloxSaleRate: null, category: "Oxygen", size: "E" },
-      { id: 48, caloxCode: null, lindeCode: "OX M-H", description: "OXYGEN USP H", lindeCost: 7.61, caloxSaleRate: null, category: "Oxygen", size: "H" },
-      { id: 49, caloxCode: null, lindeCode: "OX ABO-K", description: "OXYGEN ABO K", lindeCost: 9.63, caloxSaleRate: null, category: "Oxygen", size: "K" },
-      { id: 50, caloxCode: null, lindeCode: "OX MLC160-230", description: "OXYGEN LIQUID USP LC160", lindeCost: 116.97, caloxSaleRate: null, category: "Liquid Oxygen", size: "LC160" },
-      { id: 51, caloxCode: null, lindeCode: "OX MLC180-350", description: "OXYGEN LIQUID USP LC180", lindeCost: 135.65, caloxSaleRate: null, category: "Liquid Oxygen", size: "LC180" },
-      { id: 52, caloxCode: null, lindeCode: "OX M-BULKDS", description: "OXYGEN LIQUID USP NAIG (per unit)", lindeCost: 0.38, caloxSaleRate: null, category: "Liquid Oxygen", size: "BULK" },
-      { id: 53, caloxCode: null, lindeCode: "AOXLA267FBS-B", description: "LEVER ACTION HOLDER W/S", lindeCost: 171.29, caloxSaleRate: null, category: "Equipment", size: "N/A" },
-      { id: 54, caloxCode: null, lindeCode: "ZZZBKHM", description: "BULK HAZARDOUS MATERIAL FEE", lindeCost: 10.00, caloxSaleRate: null, category: "Fees", size: "N/A" },
+      { id: 3, caloxCode: "MG010", lindeCode: "NS M-E", description: "NITROUS OXIDE USP E", lindeCost: 45.11, caloxSaleRate: 70.00, category: "Nitrous Oxide", size: "E" },
+      { id: 4, caloxCode: null, lindeCode: "NS M-20", description: "NITROUS OXIDE USP 20LB", lindeCost: 88.55, caloxSaleRate: null, category: "Nitrous Oxide", size: "20LB" },
+      { id: 5, caloxCode: "MG030", lindeCode: "NS M-50", description: "NITROUS OXIDE USP 50LB", lindeCost: 197.42, caloxSaleRate: 235.00, category: "Nitrous Oxide", size: "H/50LB" },
+      { id: 6, caloxCode: "MG040", lindeCode: "CD M-E", description: "CARBON DIOXIDE USP E", lindeCost: 15.40, caloxSaleRate: 33.25, category: "Carbon Dioxide", size: "E" },
+      { id: 7, caloxCode: null, lindeCode: "CD M-20", description: "CARBON DIOXIDE 20LB", lindeCost: null, caloxSaleRate: null, category: "Carbon Dioxide", size: "20LB" },
+      { id: 8, caloxCode: "MG045", lindeCode: "CD M-20S", description: "CARBON DIOXIDE USP 20LB", lindeCost: 36.57, caloxSaleRate: 70.00, category: "Carbon Dioxide", size: "F/20LB" },
+      { id: 9, caloxCode: "MG050", lindeCode: "CD M-50", description: "CARBON DIOXIDE USP 50LB", lindeCost: 46.55, caloxSaleRate: 98.50, category: "Carbon Dioxide", size: "H/50LB" },
+      { id: 10, caloxCode: null, lindeCode: "CD M-50S", description: "CARBON DIOXIDE USP 50LB SIPHON", lindeCost: null, caloxSaleRate: null, category: "Carbon Dioxide", size: "H/50LB" },
+      { id: 11, caloxCode: "MGCO2-20BEV", lindeCode: "CD BEVCARB-20", description: "CO2 BEVERAGE 20LBS", lindeCost: 26.01, caloxSaleRate: 50.00, category: "Carbon Dioxide", size: "20LB" },
+      { id: 12, caloxCode: "MGCO2-50BEV", lindeCode: "CD BEVCARB-20", description: "CO2 BEVERAGE 50LBS", lindeCost: 22.00, caloxSaleRate: 117.50, category: "Carbon Dioxide", size: "50LB" },
+      { id: 13, caloxCode: null, lindeCode: "NI M 55", description: "NITROGEN NF 55", lindeCost: null, caloxSaleRate: null, category: "Nitrogen", size: "55" },
+      { id: 14, caloxCode: "MG080", lindeCode: "NI M-K", description: "NITROGEN MEDICAL GAS H 255CF", lindeCost: 13.59, caloxSaleRate: 48.25, category: "Nitrogen", size: "H/K" },
+      { id: 15, caloxCode: "MG090", lindeCode: "AI M-E", description: "COMP AIR MEDICAL GAS E 22CF", lindeCost: 13.22, caloxSaleRate: 26.75, category: "Air", size: "E" },
+      { id: 16, caloxCode: "MG100", lindeCode: "AI M-K", description: "COMP AIR MEDICAL GAS H 232CF", lindeCost: 21.94, caloxSaleRate: 44.25, category: "Air", size: "H/K" },
+      { id: 17, caloxCode: "MG110", lindeCode: "HE M-E", description: "HELIUM USP E", lindeCost: 54.65, caloxSaleRate: 197.75, category: "Helium", size: "E" },
+      { id: 18, caloxCode: "MG120", lindeCode: "HE M-K", description: "HELIUM USP K", lindeCost: 174.93, caloxSaleRate: 750.00, category: "Helium", size: "H/K" },
+      { id: 19, caloxCode: null, lindeCode: "HE M-H", description: "HELIUM USP H", lindeCost: 184.22, caloxSaleRate: null, category: "Helium", size: "H" },
+      { id: 20, caloxCode: "MG125", lindeCode: "HE 5.0UH-G", description: "HELIUM 99.999% UHP G", lindeCost: 212.49, caloxSaleRate: 380.00, category: "Helium", size: "G" },
+      { id: 21, caloxCode: null, lindeCode: "HE 55", description: "HELIUM 55", lindeCost: 68.52, caloxSaleRate: null, category: "Helium", size: "55" },
+      { id: 22, caloxCode: "MG130", lindeCode: "HE B-55", description: "HELIUM BALLOON 55", lindeCost: 31.82, caloxSaleRate: 200.00, category: "Helium", size: "55" },
+      { id: 23, caloxCode: "MG140", lindeCode: "HE B-Kt", description: "HELIUM BALLOON K", lindeCost: 504.70, caloxSaleRate: 715.00, category: "Helium", size: "K" },
+      { id: 24, caloxCode: null, lindeCode: "HE B-Q", description: "HELIUM BALLOON Q", lindeCost: 66.95, caloxSaleRate: null, category: "Helium", size: "Q" },
+      { id: 25, caloxCode: null, lindeCode: "HE K", description: "HELIUM K", lindeCost: 94.08, caloxSaleRate: null, category: "Helium", size: "K" },
+      { id: 26, caloxCode: "MG210", lindeCode: "LD CO1C-E", description: "LUNG DF NIT-CO .3%-HEL E", lindeCost: 142.51, caloxSaleRate: 280.00, category: "Lung Diffusion", size: "E" },
+      { id: 27, caloxCode: "MG265", lindeCode: "LD CO1C-K", description: "LUNG DF NIT-CO .3%-HEL K", lindeCost: 164.40, caloxSaleRate: 392.00, category: "Lung Diffusion", size: "H/K" },
+      { id: 28, caloxCode: "MG268", lindeCode: "LD ME1C-K", description: "LUNG DF NIT-CO .3%-METH K", lindeCost: 149.80, caloxSaleRate: 332.50, category: "Lung Diffusion", size: "H/K" },
+      { id: 29, caloxCode: null, lindeCode: "LD NE1C-E", description: "LUNG DF NIT-CO .3%-NE E", lindeCost: 136.32, caloxSaleRate: null, category: "Lung Diffusion", size: "E" },
+      { id: 30, caloxCode: "MG269", lindeCode: "LD NIOX15C-K", description: "HIGH ALTITUDE HYPOXIA TEST", lindeCost: 128.63, caloxSaleRate: 474.00, category: "Lung Diffusion", size: "K" },
+      { id: 31, caloxCode: "MG3070", lindeCode: "MM HEOX30-K", description: "HELIOX 70/30 K", lindeCost: 335.97, caloxSaleRate: 681.65, category: "Mixtures", size: "K" },
+      { id: 32, caloxCode: "MG170", lindeCode: "MM OXCD20-Q", description: "OXY-CO2 20% USP Q", lindeCost: 35.54, caloxSaleRate: null, category: "Mixtures", size: "Q" },
+      { id: 33, caloxCode: "MG180", lindeCode: "MM OXCD20-K", description: "OXY-CO2 20% USP K", lindeCost: 47.21, caloxSaleRate: 149.50, category: "Mixtures", size: "H/K" },
+      { id: 34, caloxCode: "MG185", lindeCode: "MM OXCD5-K", description: "OXY-CO2 5% USP K", lindeCost: 50.36, caloxSaleRate: 149.00, category: "Mixtures", size: "H/K" },
+      { id: 35, caloxCode: null, lindeCode: "OX 4.3UH-K", description: "OXYGEN 99.993% UHP K", lindeCost: null, caloxSaleRate: null, category: "Oxygen", size: "K" },
+      { id: 36, caloxCode: null, lindeCode: "OX M-BULKDS", description: "OXYGEN LIQUID USP NAIG", lindeCost: 0.38, caloxSaleRate: null, category: "Liquid Oxygen", size: "BULK" },
+      { id: 37, caloxCode: null, lindeCode: "OX MLC160-230", description: "OXYGEN LIQUID USP LC160", lindeCost: 116.97, caloxSaleRate: null, category: "Liquid Oxygen", size: "LC160" },
+      { id: 38, caloxCode: null, lindeCode: "OX MLC180-350", description: "OXYGEN LIQUID USP LC180", lindeCost: 141.08, caloxSaleRate: null, category: "Liquid Oxygen", size: "LC180" },
+      { id: 39, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 210", lindeCost: 3.11, caloxSaleRate: null, category: "Cylinder Rental", size: "210" },
+      { id: 40, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 230", lindeCost: 4.65, caloxSaleRate: null, category: "Cylinder Rental", size: "230" },
+      { id: 41, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 310", lindeCost: 3.11, caloxSaleRate: null, category: "Cylinder Rental", size: "310" },
+      { id: 42, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 330", lindeCost: 4.55, caloxSaleRate: null, category: "Cylinder Rental", size: "330" },
+      { id: 43, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 410", lindeCost: 3.11, caloxSaleRate: null, category: "Cylinder Rental", size: "410" },
+      { id: 44, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 430", lindeCost: 4.43, caloxSaleRate: null, category: "Cylinder Rental", size: "430" },
+      { id: 45, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 471", lindeCost: 38.12, caloxSaleRate: null, category: "Cylinder Rental", size: "471" },
+      { id: 46, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 510", lindeCost: 3.11, caloxSaleRate: null, category: "Cylinder Rental", size: "510" },
+      { id: 47, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 530", lindeCost: 4.65, caloxSaleRate: null, category: "Cylinder Rental", size: "530" },
     ];
 
     // Default inventory
