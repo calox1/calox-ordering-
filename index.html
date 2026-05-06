@@ -1,28 +1,671 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calox Medical Gas - Linde Order Management</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @media print { .no-print { display: none !important; } }
-  </style>
-</head>
-<body class="bg-gray-100">
-  <div id="root"></div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalOx - Linde Order Management</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      /* ═══════════════════════════════════════════════
+         CalOx Design System Tokens (from DESIGN.md)
+         ═══════════════════════════════════════════════ */
+      :root {
+        /* Primary — CalOx Blue */
+        --clx-blue-50:  #eaf4fb;
+        --clx-blue-100: #cfe6f5;
+        --clx-blue-200: #9fcdeb;
+        --clx-blue-300: #6fb4e0;
+        --clx-blue-400: #3f9bd6;
+        --clx-blue-500: #1e9fd9;
+        --clx-blue-600: #1585b8;
+        --clx-blue-700: #0f6a94;
+        --clx-blue-800: #0a4f6f;
+        --clx-blue-900: #062f43;
 
-  <script type="text/babel">
+        /* Neutral — CalOx Gray */
+        --clx-gray-50:  #f7f8f9;
+        --clx-gray-100: #eef0f2;
+        --clx-gray-200: #dfe2e6;
+        --clx-gray-300: #c4c9ce;
+        --clx-gray-400: #9aa1a8;
+        --clx-gray-500: #7a828a;
+        --clx-gray-600: #5d656c;
+        --clx-gray-700: #434a51;
+        --clx-gray-800: #2b3137;
+        --clx-gray-900: #161a1e;
+
+        /* Semantic Accents */
+        --clx-green-500: #2f9e6a;
+        --clx-amber-500: #d89521;
+        --clx-red-500:   #c93a3a;
+
+        /* Extended tints */
+        --clx-amber-bg:  #fcf1de;
+        --clx-amber-fg:  #8a5e11;
+        --clx-green-bg:  #e6f4ed;
+        --clx-green-fg:  #1f7a4e;
+        --clx-red-bg:    #fbeaea;
+
+        /* Surfaces */
+        --surface-page:    #ffffff;
+        --surface-muted:   var(--clx-gray-50);
+        --surface-raised:  #ffffff;
+        --surface-inverse: var(--clx-blue-900);
+
+        /* Foregrounds */
+        --fg-1: var(--clx-gray-900);
+        --fg-2: var(--clx-gray-700);
+        --fg-3: var(--clx-gray-500);
+        --fg-4: var(--clx-gray-400);
+        --fg-on-blue: #ffffff;
+        --fg-link: var(--clx-blue-600);
+        --fg-link-hover: var(--clx-blue-700);
+
+        /* Borders */
+        --border-1: var(--clx-gray-200);
+        --border-2: var(--clx-gray-300);
+        --border-strong: var(--clx-gray-400);
+        --border-brand: var(--clx-blue-500);
+
+        /* Typography */
+        --font-sans:  'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+        --font-mono:  'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+        /* Type scale */
+        --fs-h1:    34px;
+        --fs-h2:    26px;
+        --fs-h3:    20px;
+        --fs-h4:    17px;
+        --fs-body:  16px;
+        --fs-sm:    14px;
+        --fs-xs:    12px;
+        --fs-micro: 11px;
+
+        /* Line heights */
+        --lh-tight:  1.15;
+        --lh-snug:   1.3;
+        --lh-normal: 1.5;
+
+        /* Font weights */
+        --fw-regular:  400;
+        --fw-medium:   500;
+        --fw-semibold: 600;
+        --fw-bold:     700;
+
+        /* Letter spacing */
+        --ls-eyebrow: 0.12em;
+        --ls-label:   0.04em;
+
+        /* Spacing */
+        --space-1:  4px;
+        --space-2:  8px;
+        --space-3:  12px;
+        --space-4:  16px;
+        --space-5:  20px;
+        --space-6:  24px;
+        --space-8:  32px;
+        --space-10: 40px;
+        --space-12: 48px;
+
+        /* Border radii */
+        --radius-sm:   3px;
+        --radius-md:   6px;
+        --radius-pill: 999px;
+
+        /* Shadows */
+        --shadow-1: 0 1px 2px rgba(16,30,50,0.06), 0 1px 1px rgba(16,30,50,0.04);
+        --shadow-2: 0 2px 6px rgba(16,30,50,0.08), 0 1px 2px rgba(16,30,50,0.04);
+
+        /* Motion */
+        --ease-standard: cubic-bezier(0.2, 0.0, 0.2, 1);
+        --dur-fast: 120ms;
+        --dur-base: 200ms;
+      }
+
+      /* ═══════════════════════════════════════════════
+         Base Reset & Defaults
+         ═══════════════════════════════════════════════ */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      body {
+        font-family: var(--font-sans);
+        font-size: var(--fs-body);
+        font-weight: var(--fw-regular);
+        line-height: var(--lh-normal);
+        color: var(--fg-2);
+        background: var(--surface-muted);
+      }
+
+      /* ═══════════════════════════════════════════════
+         Layout
+         ═══════════════════════════════════════════════ */
+      .clx-container { max-width: 1100px; margin: 0 auto; padding: 0 var(--space-8); }
+      .clx-page-content { padding: var(--space-6) 0 var(--space-12); }
+
+      /* ═══════════════════════════════════════════════
+         Header — 56px, white, sticky
+         ═══════════════════════════════════════════════ */
+      .clx-header {
+        height: 56px;
+        background: var(--surface-raised);
+        border-bottom: 1px solid var(--border-1);
+        box-shadow: var(--shadow-1);
+        display: flex;
+        align-items: center;
+      }
+      .clx-header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 var(--space-8);
+      }
+      .clx-header-left { display: flex; align-items: center; gap: var(--space-4); }
+      .clx-header-logo { height: 36px; }
+      .clx-header-text {}
+      .clx-header-eyebrow {
+        font-size: var(--fs-micro);
+        font-weight: var(--fw-bold);
+        text-transform: uppercase;
+        letter-spacing: var(--ls-eyebrow);
+        color: var(--clx-blue-600);
+        line-height: 1;
+        margin-bottom: 2px;
+      }
+      .clx-header-subtitle {
+        font-size: var(--fs-xs);
+        color: var(--fg-3);
+        line-height: 1;
+      }
+      .clx-header-right { display: flex; align-items: center; gap: var(--space-4); }
+      .clx-header-meta { text-align: right; }
+      .clx-header-meta-label { font-size: var(--fs-xs); color: var(--fg-3); }
+      .clx-header-meta-value { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--fg-2); font-weight: var(--fw-medium); }
+
+      /* ═══════════════════════════════════════════════
+         Tab Navigation
+         ═══════════════════════════════════════════════ */
+      .clx-nav {
+        background: var(--surface-raised);
+        border-bottom: 1px solid var(--border-1);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .clx-nav-inner {
+        display: flex;
+        gap: var(--space-1);
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 var(--space-8);
+        overflow-x: auto;
+      }
+      .clx-tab {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+        border: none;
+        border-bottom: 2px solid transparent;
+        background: none;
+        font-family: var(--font-sans);
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-semibold);
+        color: var(--fg-3);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color var(--dur-fast) var(--ease-standard),
+                    border-color var(--dur-fast) var(--ease-standard);
+      }
+      .clx-tab:hover { color: var(--fg-2); border-bottom-color: var(--border-2); }
+      .clx-tab--active { color: var(--clx-blue-700); border-bottom-color: var(--clx-blue-500); }
+
+      /* ═══════════════════════════════════════════════
+         Buttons (CXButton)
+         ═══════════════════════════════════════════════ */
+      .clx-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-family: var(--font-sans);
+        font-weight: var(--fw-semibold);
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all var(--dur-fast) var(--ease-standard);
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .clx-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      /* Sizes */
+      .clx-btn--sm { font-size: 13px; padding: 6px 12px; }
+      .clx-btn--md { font-size: var(--fs-sm); padding: 9px 16px; }
+      .clx-btn--lg { font-size: 15px; padding: 11px 20px; }
+
+      /* Variants */
+      .clx-btn--primary { background: var(--clx-blue-500); color: var(--fg-on-blue); border-color: var(--clx-blue-500); }
+      .clx-btn--primary:hover:not(:disabled) { background: var(--clx-blue-600); border-color: var(--clx-blue-600); }
+
+      .clx-btn--secondary { background: var(--surface-raised); color: var(--clx-blue-700); border-color: var(--clx-blue-200); }
+      .clx-btn--secondary:hover:not(:disabled) { border-color: var(--clx-blue-500); }
+
+      .clx-btn--ghost { background: transparent; color: var(--fg-2); border-color: transparent; }
+      .clx-btn--ghost:hover:not(:disabled) { background: var(--clx-gray-100); color: var(--fg-1); }
+
+      .clx-btn--danger { background: var(--surface-raised); color: var(--clx-red-500); border-color: #f1c6c6; }
+      .clx-btn--danger:hover:not(:disabled) { background: var(--clx-red-500); color: #ffffff; }
+
+      /* Icon-only button */
+      .clx-btn--icon { padding: var(--space-2); }
+
+      /* Cart badge button */
+      .clx-cart-btn {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px; height: 36px;
+        background: var(--clx-blue-50);
+        color: var(--clx-blue-700);
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: background var(--dur-fast) var(--ease-standard);
+      }
+      .clx-cart-btn:hover { background: var(--clx-blue-100); }
+      .clx-cart-badge {
+        position: absolute;
+        top: -4px; right: -4px;
+        width: 18px; height: 18px;
+        background: var(--clx-red-500);
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: var(--fw-bold);
+        border-radius: var(--radius-pill);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ═══════════════════════════════════════════════
+         Cards (CXCard)
+         ═══════════════════════════════════════════════ */
+      .clx-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border-1);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-1);
+      }
+      .clx-card--padded { padding: var(--space-6); }
+
+      /* ═══════════════════════════════════════════════
+         Inputs
+         ═══════════════════════════════════════════════ */
+      .clx-input {
+        font-family: var(--font-sans);
+        font-size: var(--fs-sm);
+        padding: 9px 12px;
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+        color: var(--fg-1);
+        width: 100%;
+        transition: border-color var(--dur-fast) var(--ease-standard),
+                    box-shadow var(--dur-fast) var(--ease-standard);
+        outline: none;
+      }
+      .clx-input::placeholder { color: var(--fg-4); }
+      .clx-input:focus {
+        border-color: var(--clx-blue-500);
+        box-shadow: 0 0 0 3px rgba(30, 159, 217, 0.18);
+      }
+      .clx-input--search { padding-left: 36px; }
+      .clx-input--number { width: 60px; text-align: center; font-family: var(--font-mono); }
+      .clx-input--sm { padding: 5px 8px; font-size: var(--fs-xs); }
+
+      .clx-select {
+        font-family: var(--font-sans);
+        font-size: var(--fs-sm);
+        padding: 9px 32px 9px 36px;
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+        color: var(--fg-1);
+        appearance: none;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa1a8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        outline: none;
+        transition: border-color var(--dur-fast) var(--ease-standard),
+                    box-shadow var(--dur-fast) var(--ease-standard);
+      }
+      .clx-select:focus {
+        border-color: var(--clx-blue-500);
+        box-shadow: 0 0 0 3px rgba(30, 159, 217, 0.18);
+      }
+
+      .clx-label {
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-semibold);
+        color: var(--fg-3);
+        margin-bottom: var(--space-1);
+        display: block;
+      }
+
+      /* ═══════════════════════════════════════════════
+         Search bar wrapper
+         ═══════════════════════════════════════════════ */
+      .clx-search-wrap { position: relative; flex: 1; }
+      .clx-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--fg-4);
+        display: flex;
+      }
+
+      /* ═══════════════════════════════════════════════
+         Filter bar (category dropdown)
+         ═══════════════════════════════════════════════ */
+      .clx-filter-wrap { position: relative; }
+      .clx-filter-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--fg-4);
+        display: flex;
+        pointer-events: none;
+      }
+
+      /* ═══════════════════════════════════════════════
+         Badges (CXBadge)
+         ═══════════════════════════════════════════════ */
+      .clx-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: var(--fs-micro);
+        font-weight: var(--fw-bold);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: var(--radius-sm);
+        line-height: 1.2;
+      }
+      .clx-badge--medical { background: var(--clx-blue-50); color: var(--clx-blue-700); }
+      .clx-badge--pending { background: var(--clx-amber-bg); color: var(--clx-amber-fg); }
+      .clx-badge--delivered { background: var(--clx-green-bg); color: var(--clx-green-fg); }
+      .clx-badge--neutral { background: var(--clx-gray-100); color: var(--fg-2); }
+      .clx-badge--urgent { background: var(--clx-red-bg); color: var(--clx-red-500); }
+
+      /* Code chips (Calox code / Linde code / size) */
+      .clx-code-chip {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-medium);
+        padding: 2px 8px;
+        border-radius: var(--radius-sm);
+        line-height: 1.4;
+      }
+      .clx-code-chip--calox { background: var(--clx-blue-50); color: var(--clx-blue-700); }
+      .clx-code-chip--linde { background: var(--clx-green-bg); color: var(--clx-green-fg); }
+      .clx-code-chip--size  { background: var(--clx-gray-100); color: var(--fg-3); font-family: var(--font-sans); }
+
+      /* ═══════════════════════════════════════════════
+         Action Callout Box (low stock alert)
+         ═══════════════════════════════════════════════ */
+      .clx-callout {
+        padding: var(--space-4);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        border-left: 3px solid;
+      }
+      .clx-callout--amber {
+        background: var(--clx-amber-bg);
+        border-left-color: var(--clx-amber-500);
+      }
+      .clx-callout--blue {
+        background: var(--clx-blue-50);
+        border-left-color: var(--clx-blue-500);
+      }
+      .clx-callout-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-semibold);
+        margin-bottom: var(--space-2);
+      }
+      .clx-callout--amber .clx-callout-title { color: var(--clx-amber-fg); }
+      .clx-callout--blue .clx-callout-title { color: var(--clx-blue-700); }
+
+      .clx-callout-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+      .clx-pill-btn {
+        font-family: var(--font-sans);
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-semibold);
+        padding: 4px 12px;
+        border-radius: var(--radius-pill);
+        border: none;
+        cursor: pointer;
+        transition: background var(--dur-fast) var(--ease-standard);
+      }
+      .clx-pill-btn--amber { background: rgba(216,149,33,0.15); color: var(--clx-amber-fg); }
+      .clx-pill-btn--amber:hover { background: rgba(216,149,33,0.25); }
+
+      /* ═══════════════════════════════════════════════
+         Product Rows
+         ═══════════════════════════════════════════════ */
+      .clx-product-list { display: flex; flex-direction: column; gap: var(--space-3); }
+
+      .clx-product-row {
+        background: var(--surface-raised);
+        border: 1px solid var(--border-1);
+        border-left: 3px solid var(--clx-blue-500);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        padding: var(--space-4);
+        box-shadow: var(--shadow-1);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        transition: border-color var(--dur-fast) var(--ease-standard);
+      }
+      .clx-product-row--low {
+        border-left-color: var(--clx-amber-500);
+        background: #fffcf5;
+      }
+
+      .clx-product-info { flex: 1; min-width: 240px; }
+      .clx-product-codes { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-1); }
+      .clx-product-name { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--fg-1); }
+      .clx-product-category { font-size: var(--fs-xs); color: var(--fg-3); }
+
+      .clx-product-actions { display: flex; align-items: center; gap: var(--space-4); }
+
+      .clx-price-block { text-align: right; min-width: 90px; }
+      .clx-price-primary { font-size: var(--fs-h4); font-weight: var(--fw-semibold); color: var(--clx-green-fg); }
+      .clx-price-label { font-size: var(--fs-micro); color: var(--fg-4); font-weight: var(--fw-regular); margin-left: 2px; }
+      .clx-price-secondary { font-size: var(--fs-xs); color: var(--clx-blue-600); }
+      .clx-price-margin { font-size: var(--fs-micro); color: var(--fg-4); }
+
+      .clx-stock-block { text-align: center; min-width: 48px; }
+      .clx-stock-label { font-size: var(--fs-xs); color: var(--fg-3); }
+      .clx-stock-value { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--fg-2); }
+      .clx-stock-value--low { color: var(--clx-amber-fg); }
+
+      /* Quantity stepper */
+      .clx-stepper {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+        background: var(--clx-blue-50);
+        border-radius: var(--radius-md);
+        padding: var(--space-1);
+      }
+      .clx-stepper-btn {
+        width: 28px; height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface-raised);
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        color: var(--fg-2);
+        transition: background var(--dur-fast) var(--ease-standard);
+      }
+      .clx-stepper-btn:hover { background: var(--clx-gray-100); }
+      .clx-stepper-value {
+        width: 28px;
+        text-align: center;
+        font-weight: var(--fw-semibold);
+        font-size: var(--fs-sm);
+        color: var(--fg-1);
+      }
+
+      /* ═══════════════════════════════════════════════
+         Tables (Cart, Inventory, Pricing)
+         ═══════════════════════════════════════════════ */
+      .clx-table-wrap { overflow-x: auto; }
+      .clx-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--fs-sm);
+        min-width: 700px;
+      }
+      .clx-table th {
+        text-align: left;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-semibold);
+        color: var(--fg-3);
+        text-transform: uppercase;
+        letter-spacing: var(--ls-label);
+        background: var(--surface-muted);
+        border-bottom: 1px solid var(--border-1);
+      }
+      .clx-table th.text-center { text-align: center; }
+      .clx-table th.text-right { text-align: right; }
+      .clx-table td {
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--border-1);
+        color: var(--fg-2);
+        vertical-align: middle;
+      }
+      .clx-table td.text-center { text-align: center; }
+      .clx-table td.text-right { text-align: right; }
+      .clx-table tr:hover td { background: var(--clx-gray-50); }
+      .clx-table tr.clx-row--low td { background: #fffcf5; }
+      .clx-table tfoot td {
+        padding: var(--space-4);
+        font-weight: var(--fw-semibold);
+        background: var(--surface-muted);
+        border-bottom: none;
+      }
+
+      .clx-mono { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-medium); }
+      .clx-mono--calox { color: var(--clx-blue-700); }
+      .clx-mono--linde { color: var(--clx-green-fg); }
+      .clx-text-bold { font-weight: var(--fw-semibold); color: var(--fg-1); }
+      .clx-text-sm { font-size: var(--fs-xs); color: var(--fg-3); }
+      .clx-text-green { color: var(--clx-green-fg); }
+      .clx-text-blue { color: var(--clx-blue-600); }
+      .clx-text-amber { color: var(--clx-amber-fg); }
+      .clx-text-red { color: var(--clx-red-500); }
+
+      /* ═══════════════════════════════════════════════
+         Empty State
+         ═══════════════════════════════════════════════ */
+      .clx-empty {
+        text-align: center;
+        padding: var(--space-12) var(--space-4);
+        color: var(--fg-3);
+      }
+      .clx-empty-icon { opacity: 0.35; margin-bottom: var(--space-4); display: inline-block; }
+      .clx-empty-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); color: var(--fg-2); margin-bottom: var(--space-1); }
+      .clx-empty-sub { font-size: var(--fs-sm); }
+
+      /* ═══════════════════════════════════════════════
+         Footer
+         ═══════════════════════════════════════════════ */
+      .clx-footer {
+        background: var(--surface-inverse);
+        color: var(--clx-gray-400);
+        padding: var(--space-4) 0;
+        margin-top: var(--space-8);
+        text-align: center;
+        font-size: var(--fs-xs);
+      }
+
+      /* ═══════════════════════════════════════════════
+         Utility helpers
+         ═══════════════════════════════════════════════ */
+      .flex { display: flex; }
+      .flex-col { flex-direction: column; }
+      .flex-wrap { flex-wrap: wrap; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
+      .justify-center { justify-content: center; }
+      .gap-1 { gap: var(--space-1); }
+      .gap-2 { gap: var(--space-2); }
+      .gap-3 { gap: var(--space-3); }
+      .gap-4 { gap: var(--space-4); }
+      .gap-6 { gap: var(--space-6); }
+      .mt-2 { margin-top: var(--space-2); }
+      .mb-2 { margin-bottom: var(--space-2); }
+      .text-right { text-align: right; }
+      .text-center { text-align: center; }
+
+      .clx-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
+      .clx-toolbar-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; align-items: center; margin-top: var(--space-4); }
+
+      .clx-section-gap { margin-bottom: var(--space-4); }
+      .clx-body-text { font-size: var(--fs-sm); color: var(--fg-2); margin-bottom: var(--space-4); }
+
+      /* Legend */
+      .clx-legend { display: flex; gap: var(--space-4); font-size: var(--fs-xs); color: var(--fg-3); margin-bottom: var(--space-3); }
+      .clx-legend-swatch { width: 14px; height: 14px; border-radius: var(--radius-sm); display: inline-block; vertical-align: middle; margin-right: var(--space-1); }
+
+      /* Status inline */
+      .clx-status { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: var(--fw-semibold); }
+      .clx-status--ok { color: var(--clx-green-500); }
+      .clx-status--low { color: var(--clx-amber-fg); }
+
+      /* ═══════════════════════════════════════════════
+         Responsive
+         ═══════════════════════════════════════════════ */
+      @media (max-width: 640px) {
+        .clx-container, .clx-header-inner, .clx-nav-inner { padding: 0 var(--space-4); }
+        .clx-header-meta { display: none; }
+        .clx-product-actions { flex-wrap: wrap; }
+        .clx-toolbar { flex-direction: column; }
+      }
+
+      @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // Version tracking - increment this when products change to force localStorage refresh
+    // Version tracking
     const DATA_VERSION = 4;
     const VERSION_KEY = 'calox_data_version';
-
-    // Check and clear localStorage if version changed
     (() => {
       try {
         const savedVersion = localStorage.getItem(VERSION_KEY);
@@ -30,29 +673,35 @@
           localStorage.removeItem('calox_products_v2');
           localStorage.removeItem('calox_inventory_v2');
           localStorage.setItem(VERSION_KEY, String(DATA_VERSION));
-          console.log('Product data updated to version', DATA_VERSION);
         }
-      } catch (e) { console.log('localStorage not available'); }
+      } catch (e) {}
     })();
 
-    // Lucide icons as simple SVG components
+    // Lucide-style icons — 20px, 1.6px stroke, round caps/joins (per DESIGN.md 8.12)
+    const icon = (paths, size = 20) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        {paths}
+      </svg>
+    );
     const Icons = {
-      Package: () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>),
-      AlertTriangle: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>),
-      ShoppingCart: () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>),
-      Download: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>),
-      Settings: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>),
-      Plus: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>),
-      Minus: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>),
-      Trash2: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>),
-      Edit2: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>),
-      Save: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>),
-      X: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>),
-      Search: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>),
-      Filter: () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>),
+      Package:  (s) => icon(<><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></>, s),
+      Alert:    (s) => icon(<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>, s),
+      Cart:     (s) => icon(<><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></>, s),
+      Download: (s) => icon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>, s),
+      Settings: (s) => icon(<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>, s),
+      Plus:     (s) => icon(<><path d="M5 12h14"/><path d="M12 5v14"/></>, s),
+      Minus:    (s) => icon(<><path d="M5 12h14"/></>, s),
+      Trash:    (s) => icon(<><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></>, s),
+      Edit:     (s) => icon(<><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></>, s),
+      Save:     (s) => icon(<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>, s),
+      X:        (s) => icon(<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>, s),
+      Search:   (s) => icon(<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>, s),
+      Filter:   (s) => icon(<><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></>, s),
+      Check:    (s) => icon(<><path d="M20 6 9 17l-5-5"/></>, s),
     };
 
-    // Product data with BOTH Calox codes AND Linde codes
+    // Product data
     const initialProducts = [
       { id: 1, caloxCode: "LNG160L", lindeCode: "NI MLC160-22", description: "LIQUID NITROGEN MEDICAL 160L REFILL", lindeCost: 113.56, caloxSaleRate: 278.00, category: "Liquid Nitrogen", size: "LC160" },
       { id: 2, caloxCode: "LNG230L", lindeCode: "NI MLC230-22", description: "LIQUID NITROGEN MEDICAL 230L REFILL", lindeCost: 135.10, caloxSaleRate: 372.00, category: "Liquid Nitrogen", size: "LC230" },
@@ -65,7 +714,7 @@
       { id: 9, caloxCode: "MG050", lindeCode: "CD M-50", description: "CARBON DIOXIDE USP 50LB", lindeCost: 46.55, caloxSaleRate: 98.50, category: "Carbon Dioxide", size: "H/50LB" },
       { id: 10, caloxCode: null, lindeCode: "CD M-50S", description: "CARBON DIOXIDE USP 50LB SIPHON", lindeCost: null, caloxSaleRate: null, category: "Carbon Dioxide", size: "H/50LB" },
       { id: 11, caloxCode: "MGCO2-20BEV", lindeCode: "CD BEVCARB-20", description: "CO2 BEVERAGE 20LBS", lindeCost: 26.01, caloxSaleRate: 50.00, category: "Carbon Dioxide", size: "20LB" },
-      { id: 12, caloxCode: "MGCO2-50BEV", lindeCode: "CD BEVCARB-50", description: "CO2 BEVERAGE 50LBS", lindeCost: 60.76, caloxSaleRate: 117.50, category: "Carbon Dioxide", size: "50LB" },
+      { id: 12, caloxCode: "MGCO2-50BEV", lindeCode: "CD BEVCARB-20", description: "CO2 BEVERAGE 50LBS", lindeCost: 22.00, caloxSaleRate: 117.50, category: "Carbon Dioxide", size: "50LB" },
       { id: 13, caloxCode: null, lindeCode: "NI M 55", description: "NITROGEN NF 55", lindeCost: null, caloxSaleRate: null, category: "Nitrogen", size: "55" },
       { id: 14, caloxCode: "MG080", lindeCode: "NI M-K", description: "NITROGEN MEDICAL GAS H 255CF", lindeCost: 13.59, caloxSaleRate: 48.25, category: "Nitrogen", size: "H/K" },
       { id: 15, caloxCode: "MG090", lindeCode: "AI M-E", description: "COMP AIR MEDICAL GAS E 22CF", lindeCost: 13.22, caloxSaleRate: 26.75, category: "Air", size: "E" },
@@ -103,29 +752,19 @@
       { id: 47, caloxCode: null, lindeCode: "CYL RENTAL", description: "CYL 530", lindeCost: 4.65, caloxSaleRate: null, category: "Cylinder Rental", size: "530" },
     ];
 
-    // Default inventory
     const createDefaultInventory = (products) => products.map(p => ({
-      productId: p.id,
-      currentStock: 0,
-      refillLevel: 2,
-      maxStock: 10
+      productId: p.id, currentStock: 0, refillLevel: 2, maxStock: 10
     }));
 
-    function CaloxMedicalGasOrdering() {
+    function CaloxOrderApp() {
       const [products, setProducts] = useState(() => {
-        try {
-          const saved = localStorage.getItem('calox_products_v2');
-          return saved ? JSON.parse(saved) : initialProducts;
-        } catch { return initialProducts; }
+        try { const s = localStorage.getItem('calox_products_v2'); return s ? JSON.parse(s) : initialProducts; }
+        catch { return initialProducts; }
       });
-
       const [inventory, setInventory] = useState(() => {
-        try {
-          const saved = localStorage.getItem('calox_inventory_v2');
-          return saved ? JSON.parse(saved) : createDefaultInventory(initialProducts);
-        } catch { return createDefaultInventory(initialProducts); }
+        try { const s = localStorage.getItem('calox_inventory_v2'); return s ? JSON.parse(s) : createDefaultInventory(initialProducts); }
+        catch { return createDefaultInventory(initialProducts); }
       });
-
       const [cart, setCart] = useState([]);
       const [activeTab, setActiveTab] = useState('order');
       const [searchTerm, setSearchTerm] = useState('');
@@ -135,164 +774,134 @@
       const [tempPrice, setTempPrice] = useState('');
       const [tempInventory, setTempInventory] = useState({});
 
-      useEffect(() => {
-        try { localStorage.setItem('calox_products_v2', JSON.stringify(products)); } catch {}
-      }, [products]);
-
-      useEffect(() => {
-        try { localStorage.setItem('calox_inventory_v2', JSON.stringify(inventory)); } catch {}
-      }, [inventory]);
+      useEffect(() => { try { localStorage.setItem('calox_products_v2', JSON.stringify(products)); } catch {} }, [products]);
+      useEffect(() => { try { localStorage.setItem('calox_inventory_v2', JSON.stringify(inventory)); } catch {} }, [inventory]);
 
       const categories = ['All', ...new Set(products.map(p => p.category))];
-
       const filteredProducts = products.filter(p => {
-        const matchesSearch = p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              (p.caloxCode && p.caloxCode.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                              (p.lindeCode && p.lindeCode.toLowerCase().includes(searchTerm.toLowerCase()));
-        const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
-        return matchesSearch && matchesCategory;
+        const q = searchTerm.toLowerCase();
+        const matchesSearch = p.description.toLowerCase().includes(q) ||
+          (p.caloxCode && p.caloxCode.toLowerCase().includes(q)) ||
+          (p.lindeCode && p.lindeCode.toLowerCase().includes(q));
+        return matchesSearch && (categoryFilter === 'All' || p.category === categoryFilter);
       });
 
-      const getInventory = (productId) => inventory.find(i => i.productId === productId) || { currentStock: 0, refillLevel: 2, maxStock: 10 };
-      const needsRefill = (productId) => { const inv = getInventory(productId); return inv.currentStock <= inv.refillLevel; };
+      const getInventory = (id) => inventory.find(i => i.productId === id) || { currentStock: 0, refillLevel: 2, maxStock: 10 };
+      const needsRefill = (id) => { const inv = getInventory(id); return inv.currentStock <= inv.refillLevel; };
       const productsNeedingRefill = products.filter(p => needsRefill(p.id) && (p.lindeCost || p.caloxSaleRate));
 
       const addToCart = (product, quantity = 1) => {
         setCart(prev => {
-          const existing = prev.find(item => item.productId === product.id);
-          if (existing) return prev.map(item => item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+          const existing = prev.find(i => i.productId === product.id);
+          if (existing) return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + quantity } : i);
           return [...prev, { productId: product.id, product, quantity }];
         });
       };
-
-      const removeFromCart = (productId) => setCart(prev => prev.filter(item => item.productId !== productId));
-      const updateCartQuantity = (productId, quantity) => quantity <= 0 ? removeFromCart(productId) : setCart(prev => prev.map(item => item.productId === productId ? { ...item, quantity } : item));
+      const removeFromCart = (id) => setCart(prev => prev.filter(i => i.productId !== id));
+      const updateCartQty = (id, qty) => qty <= 0 ? removeFromCart(id) : setCart(prev => prev.map(i => i.productId === id ? { ...i, quantity: qty } : i));
       const clearCart = () => setCart([]);
+      const cartTotal = cart.reduce((s, i) => s + ((i.product.lindeCost || 0) * i.quantity), 0);
 
-      const cartTotal = cart.reduce((sum, item) => sum + ((item.product.lindeCost || 0) * item.quantity), 0);
-
-      const updateProductPrice = (productId, newPrice) => {
-        const price = parseFloat(newPrice);
-        if (!isNaN(price) && price >= 0) setProducts(prev => prev.map(p => p.id === productId ? { ...p, lindeCost: price } : p));
-        setEditingProduct(null);
-        setTempPrice('');
+      const updateProductPrice = (id, newPrice) => {
+        const p = parseFloat(newPrice);
+        if (!isNaN(p) && p >= 0) setProducts(prev => prev.map(pr => pr.id === id ? { ...pr, lindeCost: p } : pr));
+        setEditingProduct(null); setTempPrice('');
       };
-
-      const updateInventoryItem = (productId) => {
-        setInventory(prev => prev.map(i => i.productId === productId ? { ...i, ...tempInventory } : i));
-        setEditingInventory(null);
-        setTempInventory({});
+      const updateInventoryItem = (id) => {
+        setInventory(prev => prev.map(i => i.productId === id ? { ...i, ...tempInventory } : i));
+        setEditingInventory(null); setTempInventory({});
       };
 
       const exportToCSV = () => {
-        const headers = ['Calox Code', 'Linde Code', 'Description', 'Size', 'Quantity', 'Linde Cost', 'Line Total'];
-        const rows = cart.map(item => [
-          item.product.caloxCode || '',
-          item.product.lindeCode || '',
-          `"${item.product.description}"`,
-          item.product.size,
-          item.quantity,
-          (item.product.lindeCost || 0).toFixed(2),
-          ((item.product.lindeCost || 0) * item.quantity).toFixed(2)
+        const h = ['Calox Code','Linde Code','Description','Size','Quantity','Linde Cost','Line Total'];
+        const rows = cart.map(i => [
+          i.product.caloxCode || '', i.product.lindeCode || '',
+          `"${i.product.description}"`, i.product.size, i.quantity,
+          (i.product.lindeCost || 0).toFixed(2), ((i.product.lindeCost || 0) * i.quantity).toFixed(2)
         ]);
-        rows.push(['', '', '', '', '', 'TOTAL:', cartTotal.toFixed(2)]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        rows.push(['','','','','','TOTAL:', cartTotal.toFixed(2)]);
+        const csv = [h.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Calox_Linde_Order_${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const a = document.createElement('a'); a.href = url;
+        a.download = `CalOx_Linde_Order_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       };
 
       const exportToPDF = () => {
-        const printContent = `<!DOCTYPE html><html><head><title>Calox Medical Gas Order</title><style>body{font-family:Arial,sans-serif;padding:40px}h1{color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:10px;text-align:left;font-size:12px}th{background-color:#1e3a5f;color:white}tr:nth-child(even){background-color:#f9fafb}.total-row{font-weight:bold;background-color:#e5e7eb!important}.code{font-family:monospace;font-size:11px}</style></head><body><div style="display:flex;justify-content:space-between"><div><h1>Calox Medical Gas Order</h1><p>Order Date: ${new Date().toLocaleDateString()}</p></div><div style="text-align:right"><strong>Supplier: Linde</strong><br>Customer ID: 71793093</div></div><table><thead><tr><th>Calox Code</th><th>Linde Code</th><th>Description</th><th>Size</th><th>Qty</th><th>Cost</th><th>Total</th></tr></thead><tbody>${cart.map(item => `<tr><td class="code">${item.product.caloxCode || '-'}</td><td class="code">${item.product.lindeCode || '-'}</td><td>${item.product.description}</td><td>${item.product.size}</td><td>${item.quantity}</td><td>$${(item.product.lindeCost || 0).toFixed(2)}</td><td>$${((item.product.lindeCost || 0) * item.quantity).toFixed(2)}</td></tr>`).join('')}<tr class="total-row"><td colspan="6" style="text-align:right">ORDER TOTAL:</td><td>$${cartTotal.toFixed(2)}</td></tr></tbody></table><p style="margin-top:40px;color:#666;font-size:11px">Generated by Calox Medical Gas Ordering System</p></body></html>`;
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.print();
+        const printContent = `<!DOCTYPE html><html><head><title>CalOx Medical Gas Order</title><style>body{font-family:'Source Sans 3','Helvetica Neue',Arial,sans-serif;padding:40px;color:#434a51}h1{color:#062f43;border-bottom:3px solid #1e9fd9;padding-bottom:10px;font-weight:600}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #dfe2e6;padding:10px;text-align:left;font-size:13px}th{background-color:#062f43;color:white;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;font-size:11px}tr:nth-child(even){background-color:#f7f8f9}.total-row{font-weight:600;background-color:#eef0f2!important}.code{font-family:'JetBrains Mono',monospace;font-size:11px}</style></head><body><div style="display:flex;justify-content:space-between"><div><h1>CalOx Medical Gas Order</h1><p>Order date: ${new Date().toLocaleDateString()}</p></div><div style="text-align:right"><strong style="color:#062f43">Supplier: Linde</strong><br><span style="font-family:monospace;color:#5d656c">Customer ID: 71793093</span></div></div><table><thead><tr><th>Calox Code</th><th>Linde Code</th><th>Description</th><th>Size</th><th>Qty</th><th>Cost</th><th>Total</th></tr></thead><tbody>${cart.map(i => `<tr><td class="code">${i.product.caloxCode||'-'}</td><td class="code">${i.product.lindeCode||'-'}</td><td>${i.product.description}</td><td>${i.product.size}</td><td>${i.quantity}</td><td>$${(i.product.lindeCost||0).toFixed(2)}</td><td>$${((i.product.lindeCost||0)*i.quantity).toFixed(2)}</td></tr>`).join('')}<tr class="total-row"><td colspan="6" style="text-align:right">ORDER TOTAL:</td><td>$${cartTotal.toFixed(2)}</td></tr></tbody></table><p style="margin-top:40px;color:#7a828a;font-size:11px">CalOx, Inc. - Medical Gas Ordering System</p></body></html>`;
+        const w = window.open('', '_blank'); w.document.write(printContent); w.document.close(); w.print();
       };
 
-      // ORDER TAB
+      /* ── ORDER TAB ── */
       const renderOrderTab = () => (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><Icons.Search /></div>
-              <input type="text" placeholder="Search by Calox code, Linde code, or description..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        <div>
+          <div className="clx-toolbar">
+            <div className="clx-search-wrap">
+              <div className="clx-search-icon">{Icons.Search(16)}</div>
+              <input type="text" placeholder="Search by code or description..."
+                value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                className="clx-input clx-input--search" />
             </div>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><Icons.Filter /></div>
-              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="pl-10 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 appearance-none bg-white">
-                {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
+            <div className="clx-filter-wrap">
+              <div className="clx-filter-icon">{Icons.Filter(16)}</div>
+              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="clx-select">
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
 
           {productsNeedingRefill.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-amber-800 font-medium mb-2">
-                <Icons.AlertTriangle /><span>Low Stock Alert - {productsNeedingRefill.length} items need refill</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
+            <div className="clx-callout clx-callout--amber clx-section-gap">
+              <div className="clx-callout-title">{Icons.Alert(16)} Low stock — {productsNeedingRefill.length} items at or below refill level</div>
+              <div className="clx-callout-pills">
                 {productsNeedingRefill.slice(0, 5).map(p => (
-                  <button key={p.id} onClick={() => addToCart(p)} className="text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded-full transition">
+                  <button key={p.id} onClick={() => addToCart(p)} className="clx-pill-btn clx-pill-btn--amber">
                     + {p.caloxCode || p.lindeCode}
                   </button>
                 ))}
-                {productsNeedingRefill.length > 5 && <span className="text-sm text-amber-600">+{productsNeedingRefill.length - 5} more</span>}
+                {productsNeedingRefill.length > 5 && <span className="clx-text-sm" style={{alignSelf:'center'}}>+{productsNeedingRefill.length - 5} more</span>}
               </div>
             </div>
           )}
 
-          <div className="grid gap-3">
+          <div className="clx-product-list">
             {filteredProducts.map(product => {
               const inv = getInventory(product.id);
-              const isLowStock = needsRefill(product.id);
-              const cartItem = cart.find(item => item.productId === product.id);
+              const isLow = needsRefill(product.id);
+              const cartItem = cart.find(i => i.productId === product.id);
               const margin = product.lindeCost && product.caloxSaleRate ? ((product.caloxSaleRate - product.lindeCost) / product.caloxSaleRate * 100).toFixed(0) : null;
-
               return (
-                <div key={product.id} className={`bg-white border rounded-lg p-4 ${isLowStock ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}`}>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {product.caloxCode && <span className="font-mono text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded" title="Calox Code">{product.caloxCode}</span>}
-                        {product.lindeCode && <span className="font-mono text-sm bg-green-100 text-green-800 px-2 py-1 rounded" title="Linde Code">{product.lindeCode}</span>}
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{product.size}</span>
-                        {isLowStock && <span className="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded-full">Low Stock</span>}
-                      </div>
-                      <p className="font-medium mt-1">{product.description}</p>
-                      <p className="text-sm text-gray-500">{product.category}</p>
+                <div key={product.id} className={`clx-product-row ${isLow ? 'clx-product-row--low' : ''}`}>
+                  <div className="clx-product-info">
+                    <div className="clx-product-codes">
+                      {product.caloxCode && <span className="clx-code-chip clx-code-chip--calox">{product.caloxCode}</span>}
+                      {product.lindeCode && <span className="clx-code-chip clx-code-chip--linde">{product.lindeCode}</span>}
+                      <span className="clx-code-chip clx-code-chip--size">{product.size}</span>
+                      {isLow && <span className="clx-badge clx-badge--pending">Low stock</span>}
                     </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        {product.lindeCost !== null && <p className="text-lg font-bold text-green-600">${product.lindeCost.toFixed(2)} <span className="text-xs font-normal text-gray-500">Linde</span></p>}
-                        {product.caloxSaleRate !== null && product.caloxSaleRate > 0 && (
-                          <p className="text-sm text-blue-600">${product.caloxSaleRate.toFixed(2)} <span className="text-xs text-gray-400">Sale</span></p>
-                        )}
-                        {margin && <p className="text-xs text-gray-400">{margin}% margin</p>}
-                      </div>
-
-                      <div className="text-center text-sm">
-                        <p className="text-gray-500">Stock</p>
-                        <p className={`font-medium ${isLowStock ? 'text-amber-600' : 'text-gray-700'}`}>{inv.currentStock}</p>
-                      </div>
-
-                      {cartItem ? (
-                        <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-1">
-                          <button onClick={() => updateCartQuantity(product.id, cartItem.quantity - 1)} className="w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 transition"><Icons.Minus /></button>
-                          <span className="w-8 text-center font-medium">{cartItem.quantity}</span>
-                          <button onClick={() => updateCartQuantity(product.id, cartItem.quantity + 1)} className="w-8 h-8 flex items-center justify-center bg-white rounded hover:bg-gray-100 transition"><Icons.Plus /></button>
-                        </div>
-                      ) : (
-                        <button onClick={() => addToCart(product)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"><Icons.Plus />Add</button>
-                      )}
+                    <div className="clx-product-name">{product.description}</div>
+                    <div className="clx-product-category">{product.category}</div>
+                  </div>
+                  <div className="clx-product-actions">
+                    <div className="clx-price-block">
+                      {product.lindeCost !== null && <div className="clx-price-primary">${product.lindeCost.toFixed(2)} <span className="clx-price-label">Linde</span></div>}
+                      {product.caloxSaleRate !== null && product.caloxSaleRate > 0 && <div className="clx-price-secondary">${product.caloxSaleRate.toFixed(2)} <span className="clx-price-label">Sale</span></div>}
+                      {margin && <div className="clx-price-margin">{margin}% margin</div>}
                     </div>
+                    <div className="clx-stock-block">
+                      <div className="clx-stock-label">Stock</div>
+                      <div className={`clx-stock-value ${isLow ? 'clx-stock-value--low' : ''}`}>{inv.currentStock}</div>
+                    </div>
+                    {cartItem ? (
+                      <div className="clx-stepper">
+                        <button onClick={() => updateCartQty(product.id, cartItem.quantity - 1)} className="clx-stepper-btn">{Icons.Minus(14)}</button>
+                        <span className="clx-stepper-value">{cartItem.quantity}</span>
+                        <button onClick={() => updateCartQty(product.id, cartItem.quantity + 1)} className="clx-stepper-btn">{Icons.Plus(14)}</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => addToCart(product)} className="clx-btn clx-btn--primary clx-btn--md">{Icons.Plus(16)} Add</button>
+                    )}
                   </div>
                 </div>
               );
@@ -301,63 +910,60 @@
         </div>
       );
 
-      // CART TAB
+      /* ── CART TAB ── */
       const renderCartTab = () => (
-        <div className="space-y-4">
+        <div>
           {cart.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <div className="w-16 h-16 mx-auto mb-4 opacity-50"><Icons.ShoppingCart /></div>
-              <p className="text-lg">Your cart is empty</p>
-              <p className="text-sm">Add products from the Order tab</p>
+            <div className="clx-empty">
+              <div className="clx-empty-icon">{Icons.Cart(48)}</div>
+              <div className="clx-empty-title">Cart is empty</div>
+              <div className="clx-empty-sub">Add products from the Order tab</div>
             </div>
           ) : (
             <>
-              <div className="bg-white border rounded-lg overflow-x-auto">
-                <table className="w-full min-w-[700px]">
-                  <thead className="bg-gray-50">
+              <div className="clx-card clx-table-wrap">
+                <table className="clx-table">
+                  <thead>
                     <tr>
-                      <th className="text-left p-3 font-medium">Calox Code</th>
-                      <th className="text-left p-3 font-medium">Linde Code</th>
-                      <th className="text-left p-3 font-medium">Description</th>
-                      <th className="text-center p-3 font-medium">Qty</th>
-                      <th className="text-right p-3 font-medium">Linde Cost</th>
-                      <th className="text-right p-3 font-medium">Total</th>
-                      <th className="p-3"></th>
+                      <th>Calox Code</th><th>Linde Code</th><th>Description</th>
+                      <th className="text-center">Qty</th><th className="text-right">Linde Cost</th>
+                      <th className="text-right">Total</th><th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {cart.map(item => (
-                      <tr key={item.productId} className="border-t">
-                        <td className="p-3 font-mono text-sm text-blue-700">{item.product.caloxCode || '-'}</td>
-                        <td className="p-3 font-mono text-sm text-green-700">{item.product.lindeCode || '-'}</td>
-                        <td className="p-3"><p className="font-medium">{item.product.description}</p><p className="text-xs text-gray-500">{item.product.size}</p></td>
-                        <td className="p-3">
+                      <tr key={item.productId}>
+                        <td className="clx-mono clx-mono--calox">{item.product.caloxCode || '-'}</td>
+                        <td className="clx-mono clx-mono--linde">{item.product.lindeCode || '-'}</td>
+                        <td><span className="clx-text-bold">{item.product.description}</span><br/><span className="clx-text-sm">{item.product.size}</span></td>
+                        <td className="text-center">
                           <div className="flex items-center justify-center gap-2">
-                            <button onClick={() => updateCartQuantity(item.productId, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-100 transition"><Icons.Minus /></button>
-                            <input type="number" value={item.quantity} onChange={(e) => updateCartQuantity(item.productId, parseInt(e.target.value) || 0)} className="w-16 text-center border rounded py-1" min="0" />
-                            <button onClick={() => updateCartQuantity(item.productId, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-100 transition"><Icons.Plus /></button>
+                            <button onClick={() => updateCartQty(item.productId, item.quantity - 1)} className="clx-stepper-btn">{Icons.Minus(14)}</button>
+                            <input type="number" value={item.quantity} onChange={e => updateCartQty(item.productId, parseInt(e.target.value) || 0)}
+                              className="clx-input clx-input--number clx-input--sm" min="0" />
+                            <button onClick={() => updateCartQty(item.productId, item.quantity + 1)} className="clx-stepper-btn">{Icons.Plus(14)}</button>
                           </div>
                         </td>
-                        <td className="p-3 text-right">${(item.product.lindeCost || 0).toFixed(2)}</td>
-                        <td className="p-3 text-right font-medium">${((item.product.lindeCost || 0) * item.quantity).toFixed(2)}</td>
-                        <td className="p-3"><button onClick={() => removeFromCart(item.productId)} className="text-red-500 hover:text-red-700 p-1"><Icons.Trash2 /></button></td>
+                        <td className="text-right">${(item.product.lindeCost || 0).toFixed(2)}</td>
+                        <td className="text-right clx-text-bold">${((item.product.lindeCost || 0) * item.quantity).toFixed(2)}</td>
+                        <td><button onClick={() => removeFromCart(item.productId)} className="clx-btn clx-btn--ghost clx-btn--icon" style={{color:'var(--clx-red-500)'}}>{Icons.Trash(16)}</button></td>
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot className="bg-gray-50 font-bold">
-                    <tr className="border-t-2">
-                      <td colSpan="5" className="p-4 text-right">Order Total (Linde Cost):</td>
-                      <td className="p-4 text-right text-xl text-green-600">${cartTotal.toFixed(2)}</td>
+                  <tfoot>
+                    <tr>
+                      <td colSpan="5" className="text-right" style={{fontSize:'var(--fs-sm)'}}>Order total (Linde cost):</td>
+                      <td className="text-right" style={{fontSize:'var(--fs-h3)', color:'var(--clx-green-fg)'}}>${cartTotal.toFixed(2)}</td>
                       <td></td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
-              <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <button onClick={clearCart} className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">Clear Cart</button>
+              <div className="clx-toolbar-actions">
+                <button onClick={clearCart} className="clx-btn clx-btn--danger clx-btn--md">Clear cart</button>
                 <div className="flex gap-3">
-                  <button onClick={exportToCSV} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"><Icons.Download />Export CSV</button>
-                  <button onClick={exportToPDF} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"><Icons.Download />Export PDF</button>
+                  <button onClick={exportToCSV} className="clx-btn clx-btn--secondary clx-btn--md">{Icons.Download(16)} Export CSV</button>
+                  <button onClick={exportToPDF} className="clx-btn clx-btn--primary clx-btn--md">{Icons.Download(16)} Export PDF</button>
                 </div>
               </div>
             </>
@@ -365,52 +971,58 @@
         </div>
       );
 
-      // INVENTORY TAB
+      /* ── INVENTORY TAB ── */
       const renderInventoryTab = () => (
-        <div className="space-y-4">
-          <p className="text-gray-600">Manage stock levels and refill thresholds. Products at or below the refill level will trigger alerts.</p>
-          <div className="bg-white border rounded-lg overflow-x-auto">
-            <table className="w-full min-w-[800px]">
-              <thead className="bg-gray-50">
+        <div>
+          <p className="clx-body-text">Manage stock levels and refill thresholds. Products at or below the refill level trigger alerts.</p>
+          <div className="clx-card clx-table-wrap">
+            <table className="clx-table" style={{minWidth:800}}>
+              <thead>
                 <tr>
-                  <th className="text-left p-3 font-medium">Calox Code</th>
-                  <th className="text-left p-3 font-medium">Description</th>
-                  <th className="text-center p-3 font-medium">Current</th>
-                  <th className="text-center p-3 font-medium">Refill At</th>
-                  <th className="text-center p-3 font-medium">Max</th>
-                  <th className="text-center p-3 font-medium">Status</th>
-                  <th className="p-3"></th>
+                  <th>Code</th><th>Description</th>
+                  <th className="text-center">Current</th><th className="text-center">Refill at</th>
+                  <th className="text-center">Max</th><th className="text-center">Status</th><th></th>
                 </tr>
               </thead>
               <tbody>
                 {products.filter(p => p.caloxCode || p.lindeCost).map(product => {
                   const inv = getInventory(product.id);
                   const isLow = needsRefill(product.id);
-                  const isEditing = editingInventory === product.id;
-
+                  const isEd = editingInventory === product.id;
                   return (
-                    <tr key={product.id} className={`border-t ${isLow ? 'bg-amber-50' : ''}`}>
-                      <td className="p-3 font-mono text-sm text-blue-700">{product.caloxCode || product.lindeCode}</td>
-                      <td className="p-3 text-sm">{product.description}</td>
-                      <td className="p-3 text-center">
-                        {isEditing ? <input type="number" value={tempInventory.currentStock ?? inv.currentStock} onChange={(e) => setTempInventory({...tempInventory, currentStock: parseInt(e.target.value) || 0})} className="w-16 text-center border rounded p-1" min="0" /> : <span className={`font-medium ${isLow ? 'text-amber-600' : ''}`}>{inv.currentStock}</span>}
+                    <tr key={product.id} className={isLow ? 'clx-row--low' : ''}>
+                      <td className="clx-mono clx-mono--calox">{product.caloxCode || product.lindeCode}</td>
+                      <td style={{fontSize:'var(--fs-xs)'}}>{product.description}</td>
+                      <td className="text-center">
+                        {isEd ? <input type="number" value={tempInventory.currentStock ?? inv.currentStock}
+                          onChange={e => setTempInventory({...tempInventory, currentStock: parseInt(e.target.value)||0})}
+                          className="clx-input clx-input--number clx-input--sm" min="0" />
+                        : <span className={isLow ? 'clx-text-amber' : ''} style={{fontWeight:600}}>{inv.currentStock}</span>}
                       </td>
-                      <td className="p-3 text-center">
-                        {isEditing ? <input type="number" value={tempInventory.refillLevel ?? inv.refillLevel} onChange={(e) => setTempInventory({...tempInventory, refillLevel: parseInt(e.target.value) || 0})} className="w-16 text-center border rounded p-1" min="0" /> : inv.refillLevel}
+                      <td className="text-center">
+                        {isEd ? <input type="number" value={tempInventory.refillLevel ?? inv.refillLevel}
+                          onChange={e => setTempInventory({...tempInventory, refillLevel: parseInt(e.target.value)||0})}
+                          className="clx-input clx-input--number clx-input--sm" min="0" />
+                        : inv.refillLevel}
                       </td>
-                      <td className="p-3 text-center">
-                        {isEditing ? <input type="number" value={tempInventory.maxStock ?? inv.maxStock} onChange={(e) => setTempInventory({...tempInventory, maxStock: parseInt(e.target.value) || 1})} className="w-16 text-center border rounded p-1" min="1" /> : inv.maxStock}
+                      <td className="text-center">
+                        {isEd ? <input type="number" value={tempInventory.maxStock ?? inv.maxStock}
+                          onChange={e => setTempInventory({...tempInventory, maxStock: parseInt(e.target.value)||1})}
+                          className="clx-input clx-input--number clx-input--sm" min="1" />
+                        : inv.maxStock}
                       </td>
-                      <td className="p-3 text-center">
-                        {isLow ? <span className="inline-flex items-center gap-1 text-amber-600 text-sm"><Icons.AlertTriangle />Low</span> : <span className="text-green-600 text-sm">OK</span>}
+                      <td className="text-center">
+                        {isLow
+                          ? <span className="clx-status clx-status--low">{Icons.Alert(14)} Low</span>
+                          : <span className="clx-status clx-status--ok">{Icons.Check(14)} OK</span>}
                       </td>
-                      <td className="p-3">
-                        {isEditing ? (
+                      <td>
+                        {isEd ? (
                           <div className="flex gap-1">
-                            <button onClick={() => updateInventoryItem(product.id)} className="p-1 text-green-600 hover:text-green-700"><Icons.Save /></button>
-                            <button onClick={() => { setEditingInventory(null); setTempInventory({}); }} className="p-1 text-gray-500 hover:text-gray-700"><Icons.X /></button>
+                            <button onClick={() => updateInventoryItem(product.id)} className="clx-btn clx-btn--ghost clx-btn--icon" style={{color:'var(--clx-green-500)'}}>{Icons.Save(16)}</button>
+                            <button onClick={() => { setEditingInventory(null); setTempInventory({}); }} className="clx-btn clx-btn--ghost clx-btn--icon">{Icons.X(16)}</button>
                           </div>
-                        ) : <button onClick={() => { setEditingInventory(product.id); setTempInventory(inv); }} className="p-1 text-blue-600 hover:text-blue-700"><Icons.Edit2 /></button>}
+                        ) : <button onClick={() => { setEditingInventory(product.id); setTempInventory(inv); }} className="clx-btn clx-btn--ghost clx-btn--icon" style={{color:'var(--clx-blue-600)'}}>{Icons.Edit(16)}</button>}
                       </td>
                     </tr>
                   );
@@ -421,53 +1033,50 @@
         </div>
       );
 
-      // PRICING TAB
+      /* ── PRICING TAB ── */
       const renderPricingTab = () => (
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800"><strong>Update Linde Pricing:</strong> Edit the Linde Cost when contract pricing changes. Your Calox sale rates are shown for margin reference.</p>
+        <div>
+          <div className="clx-callout clx-callout--blue clx-section-gap">
+            <div className="clx-callout-title">Update Linde pricing</div>
+            <p style={{fontSize:'var(--fs-sm)', color:'var(--clx-blue-700)'}}>Edit the Linde cost when contract pricing changes. Calox sale rates are shown for margin reference.</p>
           </div>
-          <div className="flex gap-4 text-sm mb-2">
-            <span className="flex items-center gap-2"><span className="w-4 h-4 bg-blue-100 rounded"></span> Calox Code</span>
-            <span className="flex items-center gap-2"><span className="w-4 h-4 bg-green-100 rounded"></span> Linde Code</span>
+          <div className="clx-legend clx-section-gap">
+            <span><span className="clx-legend-swatch" style={{background:'var(--clx-blue-50)'}}></span> Calox code</span>
+            <span><span className="clx-legend-swatch" style={{background:'var(--clx-green-bg)'}}></span> Linde code</span>
           </div>
-          <div className="bg-white border rounded-lg overflow-x-auto">
-            <table className="w-full min-w-[900px]">
-              <thead className="bg-gray-50">
+          <div className="clx-card clx-table-wrap">
+            <table className="clx-table" style={{minWidth:900}}>
+              <thead>
                 <tr>
-                  <th className="text-left p-3 font-medium">Calox Code</th>
-                  <th className="text-left p-3 font-medium">Linde Code</th>
-                  <th className="text-left p-3 font-medium">Description</th>
-                  <th className="text-center p-3 font-medium">Size</th>
-                  <th className="text-right p-3 font-medium">Linde Cost</th>
-                  <th className="text-right p-3 font-medium">Sale Rate</th>
-                  <th className="text-right p-3 font-medium">Margin</th>
-                  <th className="p-3"></th>
+                  <th>Calox Code</th><th>Linde Code</th><th>Description</th>
+                  <th className="text-center">Size</th><th className="text-right">Linde Cost</th>
+                  <th className="text-right">Sale Rate</th><th className="text-right">Margin</th><th></th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(product => {
-                  const isEditing = editingProduct === product.id;
+                  const isEd = editingProduct === product.id;
                   const margin = product.lindeCost && product.caloxSaleRate ? ((product.caloxSaleRate - product.lindeCost) / product.caloxSaleRate * 100).toFixed(0) : null;
-
                   return (
-                    <tr key={product.id} className="border-t hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm text-blue-700">{product.caloxCode || '-'}</td>
-                      <td className="p-3 font-mono text-sm text-green-700">{product.lindeCode || '-'}</td>
-                      <td className="p-3 text-sm">{product.description}</td>
-                      <td className="p-3 text-center text-sm">{product.size}</td>
-                      <td className="p-3 text-right">
-                        {isEditing ? <input type="number" step="0.01" value={tempPrice} onChange={(e) => setTempPrice(e.target.value)} className="w-24 text-right border rounded p-1" min="0" /> : (product.lindeCost !== null ? <span className="font-medium text-green-600">${product.lindeCost.toFixed(2)}</span> : <span className="text-gray-400">-</span>)}
+                    <tr key={product.id}>
+                      <td className="clx-mono clx-mono--calox">{product.caloxCode || '-'}</td>
+                      <td className="clx-mono clx-mono--linde">{product.lindeCode || '-'}</td>
+                      <td style={{fontSize:'var(--fs-xs)'}}>{product.description}</td>
+                      <td className="text-center" style={{fontSize:'var(--fs-xs)'}}>{product.size}</td>
+                      <td className="text-right">
+                        {isEd ? <input type="number" step="0.01" value={tempPrice} onChange={e => setTempPrice(e.target.value)}
+                          className="clx-input clx-input--number clx-input--sm" style={{width:80, textAlign:'right'}} min="0" />
+                        : (product.lindeCost !== null ? <span className="clx-text-green" style={{fontWeight:600}}>${product.lindeCost.toFixed(2)}</span> : <span style={{color:'var(--fg-4)'}}>-</span>)}
                       </td>
-                      <td className="p-3 text-right">{product.caloxSaleRate ? <span className="text-blue-600">${product.caloxSaleRate.toFixed(2)}</span> : <span className="text-gray-400">-</span>}</td>
-                      <td className="p-3 text-right">{margin && parseInt(margin) > 0 ? <span className="text-green-600 text-sm">{margin}%</span> : '-'}</td>
-                      <td className="p-3">
-                        {product.lindeCode && (isEditing ? (
+                      <td className="text-right">{product.caloxSaleRate ? <span className="clx-text-blue">${product.caloxSaleRate.toFixed(2)}</span> : <span style={{color:'var(--fg-4)'}}>-</span>}</td>
+                      <td className="text-right">{margin && parseInt(margin) > 0 ? <span className="clx-text-green" style={{fontSize:'var(--fs-xs)'}}>{margin}%</span> : '-'}</td>
+                      <td>
+                        {product.lindeCode && (isEd ? (
                           <div className="flex gap-1">
-                            <button onClick={() => updateProductPrice(product.id, tempPrice)} className="p-1 text-green-600 hover:text-green-700"><Icons.Save /></button>
-                            <button onClick={() => { setEditingProduct(null); setTempPrice(''); }} className="p-1 text-gray-500 hover:text-gray-700"><Icons.X /></button>
+                            <button onClick={() => updateProductPrice(product.id, tempPrice)} className="clx-btn clx-btn--ghost clx-btn--icon" style={{color:'var(--clx-green-500)'}}>{Icons.Save(16)}</button>
+                            <button onClick={() => { setEditingProduct(null); setTempPrice(''); }} className="clx-btn clx-btn--ghost clx-btn--icon">{Icons.X(16)}</button>
                           </div>
-                        ) : <button onClick={() => { setEditingProduct(product.id); setTempPrice((product.lindeCost || 0).toString()); }} className="p-1 text-blue-600 hover:text-blue-700"><Icons.Edit2 /></button>)}
+                        ) : <button onClick={() => { setEditingProduct(product.id); setTempPrice((product.lindeCost||0).toString()); }} className="clx-btn clx-btn--ghost clx-btn--icon" style={{color:'var(--clx-blue-600)'}}>{Icons.Edit(16)}</button>)}
                       </td>
                     </tr>
                   );
@@ -478,68 +1087,71 @@
         </div>
       );
 
+      /* ── MAIN RENDER ── */
+      const tabs = [
+        { id: 'order',     label: 'Order',                 icon: () => Icons.Package(18) },
+        { id: 'cart',      label: `Cart (${cart.length})`,  icon: () => Icons.Cart(18)    },
+        { id: 'inventory', label: 'Inventory',              icon: () => Icons.Alert(18)   },
+        { id: 'pricing',   label: 'Pricing',                icon: () => Icons.Settings(18)},
+      ];
+
       return (
-        <div className="min-h-screen bg-gray-100">
-          <header className="bg-white border-b shadow-lg no-print">
-            <div className="max-w-6xl mx-auto px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <img src="data:image/png;base64,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" alt="CalOx Health Services" className="h-12" />
-                  <div>
-                    <p className="text-gray-500 text-sm">Medical Gas Ordering</p>
-                    <p className="text-xs text-gray-400">Linde Order Management</p>
-                  </div>
+        <div>
+          {/* Header */}
+          <header className="clx-header no-print">
+            <div className="clx-header-inner">
+              <div className="clx-header-left">
+                <img src="calox-truck-logo.png" alt="CalOx" className="clx-header-logo"
+                  onError={(e) => { e.target.style.display='none'; }} />
+                <div className="clx-header-text">
+                  <div className="clx-header-eyebrow">Medical Gas Ordering</div>
+                  <div className="clx-header-subtitle">Linde Order Management</div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right text-sm hidden sm:block">
-                    <p className="text-gray-500">Customer ID</p>
-                    <p className="font-mono text-gray-700">71793093</p>
-                  </div>
-                  {cart.length > 0 && (
-                    <button onClick={() => setActiveTab('cart')} className="relative bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition">
-                      <Icons.ShoppingCart />
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">{cart.length}</span>
-                    </button>
-                  )}
+              </div>
+              <div className="clx-header-right">
+                <div className="clx-header-meta">
+                  <div className="clx-header-meta-label">Customer ID</div>
+                  <div className="clx-header-meta-value">71793093</div>
                 </div>
+                {cart.length > 0 && (
+                  <button onClick={() => setActiveTab('cart')} className="clx-cart-btn">
+                    {Icons.Cart(18)}
+                    <span className="clx-cart-badge">{cart.length}</span>
+                  </button>
+                )}
               </div>
             </div>
           </header>
 
-          <nav className="bg-white border-b sticky top-0 z-10 no-print">
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex gap-1 overflow-x-auto">
-                {[
-                  { id: 'order', label: 'Order', icon: Icons.Package },
-                  { id: 'cart', label: `Cart (${cart.length})`, icon: Icons.ShoppingCart },
-                  { id: 'inventory', label: 'Inventory', icon: Icons.AlertTriangle },
-                  { id: 'pricing', label: 'Pricing', icon: Icons.Settings }
-                ].map(tab => (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 border-b-2 transition font-medium whitespace-nowrap ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                    <tab.icon />{tab.label}
-                  </button>
-                ))}
-              </div>
+          {/* Tab Navigation */}
+          <nav className="clx-nav no-print">
+            <div className="clx-nav-inner">
+              {tabs.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                  className={`clx-tab ${activeTab === tab.id ? 'clx-tab--active' : ''}`}>
+                  {tab.icon()}{tab.label}
+                </button>
+              ))}
             </div>
           </nav>
 
-          <main className="max-w-6xl mx-auto px-4 py-6">
+          {/* Content */}
+          <main className="clx-container clx-page-content">
             {activeTab === 'order' && renderOrderTab()}
             {activeTab === 'cart' && renderCartTab()}
             {activeTab === 'inventory' && renderInventoryTab()}
             {activeTab === 'pricing' && renderPricingTab()}
           </main>
 
-          <footer className="bg-gray-800 text-gray-400 py-4 mt-8 no-print">
-            <div className="max-w-6xl mx-auto px-4 text-center text-sm">
-              <p>Calox Medical Gas Ordering System • Calox + Linde Code Mapping</p>
-            </div>
+          {/* Footer */}
+          <footer className="clx-footer no-print">
+            <div className="clx-container">CalOx, Inc. - Medical Gas Ordering System</div>
           </footer>
         </div>
       );
     }
 
-    ReactDOM.render(<CaloxMedicalGasOrdering />, document.getElementById('root'));
-  </script>
+    ReactDOM.render(<CaloxOrderApp />, document.getElementById('root'));
+    </script>
 </body>
 </html>
